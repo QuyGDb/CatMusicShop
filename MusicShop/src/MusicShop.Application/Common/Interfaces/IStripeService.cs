@@ -17,4 +17,6 @@ public interface IStripeService
     /// Verifies the webhook signature and returns the process result.
     /// </summary>
     Task<WebhookProcessResult> HandleWebhookAsync(string json, string signature, CancellationToken cancellationToken = default);
+
+    Task<Result> RefundOrderAsync(string transactionCode, CancellationToken cancellationToken = default);
 }

@@ -77,7 +77,7 @@ public sealed class StripeService(
         }
     }
 
-    public async Task<WebhookProcessResult> HandleWebhookAsync(
+    public Task<WebhookProcessResult> HandleWebhookAsync(
         string json,
         string signature,
         CancellationToken cancellationToken = default)
@@ -86,16 +86,18 @@ public sealed class StripeService(
         {
             Event stripeEvent = EventUtility.ConstructEvent(json, signature, _settings.WebhookSecret, throwOnApiVersionMismatch: false);
 
-            return stripeEvent.Type switch
+            WebhookProcessResult result = stripeEvent.Type switch
             {
                 "checkout.session.completed" => HandleCheckoutCompleted(stripeEvent),
                 _ => WebhookProcessResult.Ignored(stripeEvent.Type)
             };
+            
+            return Task.FromResult(result);
         }
         catch (StripeException ex)
         {
             logger.LogError(ex, "Stripe webhook signature verification failed");
-            return WebhookProcessResult.Failure(PaymentErrors.CustomStripeError(ex.Message));
+            return Task.FromResult(WebhookProcessResult.Failure(PaymentErrors.CustomStripeError(ex.Message)));
         }
     }
 
@@ -117,4 +119,33 @@ public sealed class StripeService(
 
     private static long ConvertToStripeAmount(decimal price)
         => (long)Math.Round(price * 100, MidpointRounding.AwayFromZero);
+
+    public async Task<Result> RefundOrderAsync(string transactionCode, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            SessionService sessionService = new();
+            Session session = await sessionService.GetAsync(transactionCode, cancellationToken: cancellationToken);
+
+            if (string.IsNullOrEmpty(session.PaymentIntentId))
+            {
+                return Result.Failure(PaymentErrors.CustomStripeError("No payment intent found for this session."));
+            }
+
+            RefundService refundService = new();
+            RefundCreateOptions refundOptions = new()
+            {
+                PaymentIntent = session.PaymentIntentId
+            };
+
+            await refundService.CreateAsync(refundOptions, cancellationToken: cancellationToken);
+
+            return Result.Success();
+        }
+        catch (StripeException ex)
+        {
+            logger.LogError(ex, "Stripe exception during refund for transaction {TransactionCode}", transactionCode);
+            return Result.Failure(PaymentErrors.CustomStripeError(ex.Message));
+        }
+    }
 }

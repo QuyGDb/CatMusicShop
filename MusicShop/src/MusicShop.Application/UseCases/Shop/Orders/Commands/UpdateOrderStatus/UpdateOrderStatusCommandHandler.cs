@@ -13,6 +13,7 @@ public sealed class UpdateOrderStatusCommandHandler(
     IOrderRepository orderRepository,
     ICartRepository cartRepository,
     IEmailService emailService,
+    IStripeService stripeService,
     IUnitOfWork unitOfWork,
     ILogger<UpdateOrderStatusCommandHandler> logger) : IRequestHandler<UpdateOrderStatusCommand, Result>
 {
@@ -26,25 +27,31 @@ public sealed class UpdateOrderStatusCommandHandler(
             return Result.Failure(OrderErrors.NotFound);
         }
 
-        if (order.Status == request.Status)
+        OrderStatus targetStatus = request.Status;
+
+        // Pre-check for StockIssue on Confirmation
+        if (targetStatus == OrderStatus.Confirmed && order.Status == OrderStatus.Pending)
+        {
+            bool hasStockIssue = order.OrderItems.Any(oi => oi.Product != null && !oi.Product.IsPreorder && oi.Product.StockQty < oi.Quantity);
+            if (hasStockIssue)
+            {
+                targetStatus = OrderStatus.StockIssue;
+            }
+        }
+
+        if (order.Status == targetStatus)
         {
             return Result.Success();
         }
 
         // Logic 1: Transition TO Confirmed (Payment Success)
-        if (request.Status == OrderStatus.Confirmed && order.Status == OrderStatus.Pending)
+        if (targetStatus == OrderStatus.Confirmed && order.Status == OrderStatus.Pending)
         {
             // 1. Deduct stock now that we have real money
             foreach (OrderItem orderItem in order.OrderItems)
             {
                 if (orderItem.Product != null && !orderItem.Product.IsPreorder)
                 {
-                    // Re-validate stock just in case it was sold out while waiting for payment
-                    if (orderItem.Product.StockQty < orderItem.Quantity)
-                    {
-                        // In a real system, you might mark the order as "StockIssue" 
-                        // and trigger a refund/manual review instead of just failing.
-                    }
                     orderItem.Product.StockQty -= orderItem.Quantity;
                 }
             }
@@ -68,8 +75,35 @@ public sealed class UpdateOrderStatusCommandHandler(
                 await cartRepository.ClearCartAsync(cart.Id, cancellationToken);
             }
         }
-        // Logic 2: Transition TO Cancelled from something that already had stock deducted (Confirmed/Shipped/etc)
-        else if (request.Status == OrderStatus.Cancelled &&
+        else if (targetStatus == OrderStatus.StockIssue && order.Status == OrderStatus.Pending)
+        {
+            logger.LogWarning("Order {OrderId} has a StockIssue. Initiating refund for transaction {TransactionCode}", order.Id, request.TransactionCode);
+
+            if (order.Payment != null)
+            {
+                if (!string.IsNullOrEmpty(request.TransactionCode))
+                {
+                    Result refundResult = await stripeService.RefundOrderAsync(request.TransactionCode, cancellationToken);
+                    if (refundResult.IsFailure)
+                    {
+                        logger.LogWarning("Failed to process automatic refund for StockIssue Order {OrderId}: {Error}", order.Id, refundResult.Error.Message);
+                    }
+                    else
+                    {
+                        order.Payment.Status = PaymentStatus.Refunded;
+                    }
+                    order.Payment.TransactionCode = request.TransactionCode;
+                }
+                order.Payment.PaidAt = DateTime.UtcNow;
+            }
+
+            MusicShop.Domain.Entities.Orders.Cart? cart = await cartRepository.GetByUserIdAsync(order.UserId, cancellationToken);
+            if (cart != null)
+            {
+                await cartRepository.ClearCartAsync(cart.Id, cancellationToken);
+            }
+        }
+        else if (targetStatus == OrderStatus.Cancelled &&
                  (order.Status == OrderStatus.Confirmed || order.Status == OrderStatus.Shipped || order.Status == OrderStatus.Delivered))
         {
             foreach (OrderItem orderItem in order.OrderItems)
@@ -79,9 +113,22 @@ public sealed class UpdateOrderStatusCommandHandler(
                     orderItem.Product.StockQty += orderItem.Quantity;
                 }
             }
+
+            if (order.Payment != null && order.Payment.Status == PaymentStatus.Paid && !string.IsNullOrEmpty(order.Payment.TransactionCode))
+            {
+                Result refundResult = await stripeService.RefundOrderAsync(order.Payment.TransactionCode, cancellationToken);
+                if (refundResult.IsFailure)
+                {
+                    logger.LogWarning("Failed to process refund for Order {OrderId}: {Error}", order.Id, refundResult.Error.Message);
+                }
+                else
+                {
+                    order.Payment.Status = PaymentStatus.Refunded;
+                }
+            }
         }
 
-        order.Status = request.Status;
+        order.Status = targetStatus;
 
         if (!string.IsNullOrEmpty(request.TrackingNumber))
         {
@@ -93,7 +140,7 @@ public sealed class UpdateOrderStatusCommandHandler(
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         // 4. Send Email Notification
-        try 
+        try
         {
             await SendStatusUpdateEmailAsync(order, cancellationToken);
         }
@@ -103,7 +150,7 @@ public sealed class UpdateOrderStatusCommandHandler(
             logger.LogError(ex, "Failed to send order status update email for Order {OrderId}", order.Id);
         }
 
-        return MusicShop.Domain.Common.Result.Success();
+        return Result.Success();
     }
 
     private async Task SendStatusUpdateEmailAsync(Order order, CancellationToken cancellationToken)
@@ -115,8 +162,8 @@ public sealed class UpdateOrderStatusCommandHandler(
                 <h2 style='color: #333;'>Hello {order.RecipientName},</h2>
                 <p>Your order <strong>#{order.Id}</strong> has been updated to: <span style='color: #4f46e5; font-weight: bold;'>{statusText}</span></p>
                 
-                {(order.Status == OrderStatus.Shipped && !string.IsNullOrEmpty(order.TrackingNumber) 
-                    ? $"<p>Your tracking number is: <strong>{order.TrackingNumber}</strong></p>" 
+                {(order.Status == OrderStatus.Shipped && !string.IsNullOrEmpty(order.TrackingNumber)
+                    ? $"<p>Your tracking number is: <strong>{order.TrackingNumber}</strong></p>"
                     : "")}
                 
                 <hr style='border: 0; border-top: 1px solid #eee; margin: 20px 0;' />

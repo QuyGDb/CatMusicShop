@@ -59,7 +59,6 @@ public sealed class CreateOrderCommandHandler(
                 return Result<CreateOrderResponse>.Failure(ProductErrors.NotFound);
             }
 
-            // Validation: Stock check (but don't deduct yet - Fix premature stock deduction)
             if (!product.IsPreorder && product.StockQty < cartItem.Quantity)
             {
                 return Result<CreateOrderResponse>.Failure(ProductErrors.InsufficientStock);
@@ -90,7 +89,6 @@ public sealed class CreateOrderCommandHandler(
 
         order.Payment = payment;
 
-        // 6. Persistence BEFORE Stripe call (Fix Race Condition)
         orderRepository.Add(order);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -103,15 +101,10 @@ public sealed class CreateOrderCommandHandler(
 
         if (!stripeResult.IsSuccess)
         {
-            // Note: Order remains in DB as Pending if Stripe fails to create session.
-            // This allows for retry/cleanup later.
             return Result<CreateOrderResponse>.Failure(stripeResult.Error);
         }
 
         string checkoutUrl = stripeResult.Value.Url;
-
-        // Note: Cart is NOT cleared here anymore. It will be cleared in the Webhook 
-        // after successful payment. This prevents losing the cart if the user cancels Stripe.
 
         return Result<CreateOrderResponse>.Success(new CreateOrderResponse(
             new OrderSummaryDto(order.Id, order.Status, order.TotalAmount, order.CreatedAt),

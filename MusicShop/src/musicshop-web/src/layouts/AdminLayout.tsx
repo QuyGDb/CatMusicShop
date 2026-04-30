@@ -102,7 +102,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <header className="h-16 border-b border-border flex items-center justify-between px-8 bg-surface/50 backdrop-blur-sm">
           <h2 className="text-sm font-medium text-muted-foreground">
-            MusicShop / <span className="text-foreground capitalize">{pathname.split('/').pop() || 'Dashboard'}</span>
+            MusicShop / <span className="text-foreground capitalize">{pathname.split('/').pop() || 'Admin'}</span>
           </h2>
         </header>
 

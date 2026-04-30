@@ -12,7 +12,7 @@ interface ArtistCardProps {
 export function ArtistCard({ artist, onEdit, onDelete, isDeleting }: ArtistCardProps) {
   return (
     <Card className="bg-surface border-border overflow-hidden hover:shadow-xl transition-all group relative">
-      <div className="aspect-[4/3] w-full relative overflow-hidden">
+      <div className="aspect-square w-full relative overflow-hidden bg-muted/30">
         {artist.imageUrl ? (
           <img
             src={artist.imageUrl}

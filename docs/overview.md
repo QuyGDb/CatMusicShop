@@ -199,9 +199,6 @@ Pending → Confirmed → Shipped → Delivered → Completed
 - **Hủy từ Confirmed trở lên:** chỉ Admin mới có quyền thực hiện.
 - **Mỗi đơn chỉ có đúng 1 lần thanh toán.**
 
-### 4.3 Đánh giá sản phẩm
-
-Khách hàng có thể để lại đánh giá (rating 1–5 sao + nhận xét) sau khi đơn hàng hoàn thành.
 
 ---
 
@@ -216,8 +213,6 @@ Khách hàng có thể để lại đánh giá (rating 1–5 sao + nhận xét) 
 ### 5.2 Thông tin ghi nhận
 
 Mỗi lần thanh toán lưu: số tiền, phương thức thanh toán, mã giao dịch, thời điểm thanh toán, trạng thái.
-
----
 
 ---
 
@@ -236,4 +231,3 @@ Mỗi lần thanh toán lưu: số tiền, phương thức thanh toán, mã giao
 
 ---
 
-*Tài liệu này chỉ mô tả nghiệp vụ. Các quyết định về công nghệ (framework, database, message queue, v.v.) được ghi nhận trong tài liệu kỹ thuật riêng biệt.*
