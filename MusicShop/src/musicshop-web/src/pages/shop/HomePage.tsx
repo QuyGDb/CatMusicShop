@@ -15,8 +15,25 @@ export default function HomePage() {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Immersive 3D Hero Section */}
-      <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
-        <MusicHeroScene />
+      <div className="flex flex-row w-full h-screen overflow-hidden bg-[#09090b]">
+        {/* Left Column: 3D Scene */}
+        <div className="flex-1 h-full relative">
+          <MusicHeroScene />
+        </div>
+
+        <div className="hidden lg:block w-[380px] h-full border-l border-white/5 bg-black">
+          <iframe 
+            title="Spotify Playlist"
+            style={{ borderRadius: '12px' }} 
+            src="https://open.spotify.com/embed/playlist/1HYRmT9RhRJ8YCEcPyNesn?utm_source=generator&theme=0" 
+            width="100%" 
+            height="100%" 
+            frameBorder="0" 
+            allowFullScreen={true} 
+            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+            loading="lazy"
+          ></iframe>
+        </div>
       </div>
 
       {/* Featured Collections Section */}

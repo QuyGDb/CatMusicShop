@@ -7,6 +7,7 @@ import { useMusicHeroScene } from '../hooks/useMusicHeroScene';
 import { Particles } from './Particles';
 import { HeroText } from './HeroText';
 import { Model } from './Model';
+import { ArtistFloatingImages } from './ArtistFloatingImages';
 
 export function MusicHeroScene() {
   const { fontUrl, heroText, models } = useMusicHeroScene();
@@ -22,7 +23,7 @@ export function MusicHeroScene() {
           position={[0.08, 8.68, -63.56]}
           fov={45}
         />
-
+        
         <Sky
           distance={450000}
           sunPosition={[0, -1, 0]}
@@ -59,8 +60,7 @@ export function MusicHeroScene() {
           minPolarAngle={1.292}
           maxPolarAngle={1.536}
         />
-
-
+        
         <HeroText
           fontUrl={fontUrl}
           text={heroText}
@@ -68,6 +68,8 @@ export function MusicHeroScene() {
           rotation={[0, -3.2, 0]}
           scale={1.03}
         />
+
+        <ArtistFloatingImages />
 
         <Model
           url={models.room}
