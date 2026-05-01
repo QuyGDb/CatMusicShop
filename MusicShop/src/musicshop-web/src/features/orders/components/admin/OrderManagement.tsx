@@ -1,8 +1,9 @@
-import { Filter, Eye, MoreVertical, Calendar } from 'lucide-react';
+import { Filter, Eye, MoreVertical, Calendar, XCircle } from 'lucide-react';
 import { Button, Card, CardContent, ManagementLayout, EmptyState } from '@/shared/components';
 import { cn } from '@/shared/lib/utils';
 import { OrderDetailsModal } from './OrderDetailsModal';
 import { useOrderManagement } from '../../hooks/useOrderManagement';
+import { OrderStatus } from '../../types';
 
 /**
  * Presentational component for order and fulfillment management.
@@ -39,21 +40,10 @@ export function OrderManagement() {
           description="Your shop is waiting for its first customer. Let's make some sales!" 
         />
       }
-      filterContent={
-        <>
-          <Button variant="outline" className="h-14 px-5 rounded-2xl bg-surface border-border flex gap-2 text-xs font-black uppercase tracking-widest">
-            <Filter className="h-4 w-4" />
-            Status
-          </Button>
-          <Button variant="outline" className="h-14 px-5 rounded-2xl bg-surface border-border flex gap-2 text-xs font-black uppercase tracking-widest">
-            <Calendar className="h-4 w-4" />
-            Date
-          </Button>
-        </>
-      }
+      filterContent={null}
     >
       {/* Summary Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {stats.map((stat, i) => (
           <Card key={i} className="bg-surface border-border">
             <CardContent className="p-6 flex items-center gap-4">
@@ -123,6 +113,16 @@ export function OrderManagement() {
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
+                        {order.status !== OrderStatus.Cancelled && (
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-9 w-9 text-muted-foreground hover:text-destructive rounded-xl"
+                            onClick={() => actions.handleCancel(order.id)}
+                          >
+                            <XCircle className="h-4 w-4" />
+                          </Button>
+                        )}
                         <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground rounded-xl">
                           <MoreVertical className="h-4 w-4" />
                         </Button>

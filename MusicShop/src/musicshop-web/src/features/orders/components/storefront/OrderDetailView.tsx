@@ -19,7 +19,7 @@ interface OrderDetailViewProps {
 }
 
 export function OrderDetailView({ orderId }: OrderDetailViewProps) {
-  const { order, isLoading, error, handleBack, handleCancel, isCancelling } = useOrderDetail(orderId);
+  const { order, isLoading, error, handleBack, handleCancel, isCancelling, isAdmin } = useOrderDetail(orderId);
 
   if (isLoading) {
     return (
@@ -49,7 +49,7 @@ export function OrderDetailView({ orderId }: OrderDetailViewProps) {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <button 
+          <button
             onClick={handleBack}
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors mb-4 group"
           >
@@ -71,15 +71,15 @@ export function OrderDetailView({ orderId }: OrderDetailViewProps) {
           </p>
         </div>
 
-        {order.status === OrderStatus.Pending && (
-          <Button 
-            variant="destructive" 
-            className="rounded-xl shrink-0" 
+        {((order.status === OrderStatus.Pending) || (isAdmin && order.status !== OrderStatus.Cancelled)) && (
+          <Button
+            variant="destructive"
+            className="rounded-xl shrink-0"
             onClick={handleCancel}
             disabled={isCancelling}
           >
             {isCancelling ? <Clock className="h-4 w-4 mr-2 animate-spin" /> : <XCircle className="h-4 w-4 mr-2" />}
-            Cancel Order
+            {isAdmin ? "Void Order (Admin)" : "Cancel Order"}
           </Button>
         )}
       </div>
@@ -99,8 +99,8 @@ export function OrderDetailView({ orderId }: OrderDetailViewProps) {
                 {order.items.map((item) => (
                   <div key={item.id} className="flex gap-4 p-6 hover:bg-muted/10 transition-colors">
                     <div className="h-20 w-20 rounded-xl overflow-hidden bg-muted shrink-0 border border-border shadow-sm">
-                      <img 
-                        src={item.productCoverUrl || '/images/placeholder-album.png'} 
+                      <img
+                        src={item.productCoverUrl || '/images/placeholder-album.png'}
                         alt={item.productName}
                         className="h-full w-full object-cover"
                       />
@@ -206,12 +206,12 @@ export function OrderDetailView({ orderId }: OrderDetailViewProps) {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Status</span>
-                  <Badge 
+                  <Badge
                     className={cn(
                       "font-bold border-none",
                       order.payment.status === 'Paid' ? "bg-emerald-100 text-emerald-700" :
-                      order.payment.status === 'Pending' ? "bg-amber-100 text-amber-700" :
-                      "bg-red-100 text-red-700"
+                        order.payment.status === 'Pending' ? "bg-amber-100 text-amber-700" :
+                          "bg-red-100 text-red-700"
                     )}
                   >
                     {order.payment.status}

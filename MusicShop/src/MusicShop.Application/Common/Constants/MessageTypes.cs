@@ -2,6 +2,9 @@ namespace MusicShop.Application.Common.Constants;
 
 public static class MessageTypes
 {
+    public static string BuildKey(string messageType, Guid entityId)
+        => $"{messageType}:{entityId}";
+
     public static class Orders
     {
         public const string Created   = "orders.order.created";
@@ -10,7 +13,6 @@ public static class MessageTypes
 
     public static class Payments
     {
-        public const string Processed = "payments.payment.processed";
         public const string Refunded  = "payments.payment.refunded";
     }
 

@@ -25,7 +25,7 @@ export function OrderFulfillment({ register, control, handleSubmit, isSubmitting
           className="w-full h-12 bg-surface border border-border rounded-xl px-4 focus:outline-none focus:border-primary transition-all font-bold text-sm"
         >
           <option value="Pending">Pending Approval</option>
-          <option value="Processing">Processing Order</option>
+          <option value="Confirmed">Confirmed Order</option>
           <option value="Shipped">Dispatched / Shipped</option>
           <option value="Delivered">Mark as Delivered</option>
           <option value="Cancelled">Void / Cancelled</option>

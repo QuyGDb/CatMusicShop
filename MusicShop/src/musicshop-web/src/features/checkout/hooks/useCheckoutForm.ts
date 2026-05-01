@@ -13,7 +13,7 @@ const checkoutSchema = z.object({
 
 type CheckoutFormValues = z.infer<typeof checkoutSchema>;
 
-export function useCheckoutForm(onSubmit: (data: CreateOrderRequest) => Promise<void>) {
+export function useCheckoutForm(onSubmit: (data: CreateOrderRequest) => Promise<any>) {
   const form = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutSchema),
     defaultValues: {

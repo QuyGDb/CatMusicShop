@@ -11,9 +11,8 @@ namespace MusicShop.Application.UseCases.Shop.Orders.Commands.UpdateOrderStatus;
 
 public sealed class UpdateOrderStatusCommandHandler(
     IOrderRepository orderRepository,
-    ICartRepository cartRepository,
+    IEnumerable<IOrderStatusAction> actions,
     IEmailService emailService,
-    IStripeService stripeService,
     IUnitOfWork unitOfWork,
     ILogger<UpdateOrderStatusCommandHandler> logger) : IRequestHandler<UpdateOrderStatusCommand, Result>
 {
@@ -27,126 +26,39 @@ public sealed class UpdateOrderStatusCommandHandler(
             return Result.Failure(OrderErrors.NotFound);
         }
 
+        OrderStatus fromStatus = order.Status;
         OrderStatus targetStatus = request.Status;
 
-        // Pre-check for StockIssue on Confirmation
-        if (targetStatus == OrderStatus.Confirmed && order.Status == OrderStatus.Pending)
-        {
-            bool hasStockIssue = order.OrderItems.Any(oi => oi.Product != null && !oi.Product.IsPreorder && oi.Product.StockQty < oi.Quantity);
-            if (hasStockIssue)
-            {
-                targetStatus = OrderStatus.StockIssue;
-            }
-        }
-
-        if (order.Status == targetStatus)
+        if (fromStatus == targetStatus)
         {
             return Result.Success();
         }
 
-        // Logic 1: Transition TO Confirmed (Payment Success)
-        if (targetStatus == OrderStatus.Confirmed && order.Status == OrderStatus.Pending)
+        // 1. Identify and execute specialized transition actions
+        IOrderStatusAction? action = actions.FirstOrDefault(a => a.CanHandle(fromStatus, targetStatus));
+        if (action != null)
         {
-            // 1. Deduct stock now that we have real money
-            foreach (OrderItem orderItem in order.OrderItems)
-            {
-                if (orderItem.Product != null && !orderItem.Product.IsPreorder)
-                {
-                    orderItem.Product.StockQty -= orderItem.Quantity;
-                }
-            }
-
-            // 2. Mark payment as Paid
-            if (order.Payment != null)
-            {
-                order.Payment.Status = PaymentStatus.Paid;
-                order.Payment.PaidAt = DateTime.UtcNow;
-
-                if (!string.IsNullOrEmpty(request.TransactionCode))
-                {
-                    order.Payment.TransactionCode = request.TransactionCode;
-                }
-            }
-
-            // 3. Clear user's cart (Snapshot: we use order.UserId to find the cart)
-            MusicShop.Domain.Entities.Orders.Cart? cart = await cartRepository.GetByUserIdAsync(order.UserId, cancellationToken);
-            if (cart != null)
-            {
-                await cartRepository.ClearCartAsync(cart.Id, cancellationToken);
-            }
-        }
-        else if (targetStatus == OrderStatus.StockIssue && order.Status == OrderStatus.Pending)
-        {
-            logger.LogWarning("Order {OrderId} has a StockIssue. Initiating refund for transaction {TransactionCode}", order.Id, request.TransactionCode);
-
-            if (order.Payment != null)
-            {
-                if (!string.IsNullOrEmpty(request.TransactionCode))
-                {
-                    Result refundResult = await stripeService.RefundOrderAsync(request.TransactionCode, cancellationToken);
-                    if (refundResult.IsFailure)
-                    {
-                        logger.LogWarning("Failed to process automatic refund for StockIssue Order {OrderId}: {Error}", order.Id, refundResult.Error.Message);
-                    }
-                    else
-                    {
-                        order.Payment.Status = PaymentStatus.Refunded;
-                    }
-                    order.Payment.TransactionCode = request.TransactionCode;
-                }
-                order.Payment.PaidAt = DateTime.UtcNow;
-            }
-
-            MusicShop.Domain.Entities.Orders.Cart? cart = await cartRepository.GetByUserIdAsync(order.UserId, cancellationToken);
-            if (cart != null)
-            {
-                await cartRepository.ClearCartAsync(cart.Id, cancellationToken);
-            }
-        }
-        else if (targetStatus == OrderStatus.Cancelled &&
-                 (order.Status == OrderStatus.Confirmed || order.Status == OrderStatus.Shipped || order.Status == OrderStatus.Delivered))
-        {
-            foreach (OrderItem orderItem in order.OrderItems)
-            {
-                if (orderItem.Product != null && !orderItem.Product.IsPreorder)
-                {
-                    orderItem.Product.StockQty += orderItem.Quantity;
-                }
-            }
-
-            if (order.Payment != null && order.Payment.Status == PaymentStatus.Paid && !string.IsNullOrEmpty(order.Payment.TransactionCode))
-            {
-                Result refundResult = await stripeService.RefundOrderAsync(order.Payment.TransactionCode, cancellationToken);
-                if (refundResult.IsFailure)
-                {
-                    logger.LogWarning("Failed to process refund for Order {OrderId}: {Error}", order.Id, refundResult.Error.Message);
-                }
-                else
-                {
-                    order.Payment.Status = PaymentStatus.Refunded;
-                }
-            }
+            await action.ExecuteAsync(order, request, cancellationToken);
         }
 
-        order.Status = targetStatus;
-
-        if (!string.IsNullOrEmpty(request.TrackingNumber))
+        // 2. Validate and perform the state transition in Domain
+        Result transitionResult = order.TransitionTo(targetStatus);
+        if (transitionResult.IsFailure)
         {
-            order.TrackingNumber = request.TrackingNumber;
+            logger.LogWarning("Invalid status transition attempt for Order {OrderId} from {From} to {To}",
+                order.Id, fromStatus, targetStatus);
+            return transitionResult;
         }
-
-        order.UpdatedAt = DateTime.UtcNow;
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        // 4. Send Email Notification
+        // 3. Send Email Notification
         try
         {
             await SendStatusUpdateEmailAsync(order, cancellationToken);
         }
         catch (Exception ex)
         {
-            // Don't fail the whole request if email fails, but log it
             logger.LogError(ex, "Failed to send order status update email for Order {OrderId}", order.Id);
         }
 

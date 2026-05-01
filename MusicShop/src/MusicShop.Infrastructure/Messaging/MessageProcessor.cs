@@ -141,7 +141,6 @@ public sealed class MessageProcessor : IMessageProcessor
         IReadOnlyDictionary<string, Type> typeMap = new Dictionary<string, Type>
         {
             [MessageTypes.Orders.Created]     = typeof(OrderCreatedEvent),
-            [MessageTypes.Payments.Processed] = typeof(PaymentProcessedEvent),
             [MessageTypes.Stripe.PaymentSucceeded] = typeof(StripePaymentSucceededEvent),
         };
 

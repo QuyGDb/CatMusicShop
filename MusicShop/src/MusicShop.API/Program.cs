@@ -127,7 +127,7 @@ app.UseHangfireDashboard("/hangfire", new DashboardOptions
 using (IServiceScope scope = app.Services.CreateScope())
 {
     IRecurringJobManager recurringJobs = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
-    
+
     // Remove old/obsolete jobs from database
     recurringJobs.RemoveIfExists("process-outbox-messages");
     recurringJobs.RemoveIfExists("process-inbox-messages");

@@ -33,7 +33,7 @@ export const orderService = {
   cancelOrder: async (id: string): Promise<void> => {
     await http.post(`/Orders/${id}/cancel`);
   },
-  
+
   getAdminOrders: async (filters: OrderHistoryFilters): Promise<PaginatedResponse<OrderListItem>> => {
     const response = await http.get<ApiResponse<OrderListItem[]>>('/admin/orders', {
       params: {

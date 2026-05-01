@@ -98,8 +98,8 @@ public sealed class CreateOrderCommandHandler(
         orderRepository.Add(order);
 
         // 6. Record Outbox Message
-        string idempotencyKey = $"orders.order.created:{order.Id}";
-        
+        string idempotencyKey = MessageTypes.BuildKey(MessageTypes.Orders.Created, order.Id);
+
         Message outbox = new()
         {
             Direction = MessageDirection.Outbox,

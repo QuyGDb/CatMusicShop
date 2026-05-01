@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using MusicShop.Domain.Common;
 
+using MusicShop.Domain.Errors;
 using MusicShop.Domain.Enums;
 
 namespace MusicShop.Domain.Entities.Orders;
@@ -23,4 +24,34 @@ public class Order : BaseEntity
 
     public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
     public Payment? Payment { get; set; }
+
+    public Result TransitionTo(OrderStatus targetStatus)
+    {
+        if (Status == targetStatus) return Result.Success();
+
+        bool isValid = (Status, targetStatus) switch
+        {
+            (OrderStatus.Pending, OrderStatus.Confirmed) => true,
+            (OrderStatus.Pending, OrderStatus.Cancelled) => true,
+            
+            (OrderStatus.Confirmed, OrderStatus.Shipped) => true,
+            (OrderStatus.Confirmed, OrderStatus.Cancelled) => true,
+            
+            (OrderStatus.Shipped, OrderStatus.Delivered) => true,
+            (OrderStatus.Shipped, OrderStatus.Cancelled) => true,
+            
+            (OrderStatus.Delivered, OrderStatus.Cancelled) => true,
+            
+            _ => false
+        };
+
+        if (!isValid)
+        {
+            return Result.Failure(OrderErrors.InvalidStatusTransition);
+        }
+
+        Status = targetStatus;
+        UpdatedAt = DateTime.UtcNow;
+        return Result.Success();
+    }
 }

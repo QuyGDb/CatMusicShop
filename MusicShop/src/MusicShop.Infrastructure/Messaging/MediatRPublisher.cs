@@ -7,30 +7,20 @@ using MusicShop.Application.Common.Constants;
 
 namespace MusicShop.Infrastructure.Messaging;
 
-public sealed class MediatRPublisher : IMessagePublisher
+public sealed class MediatRPublisher(IMediator mediator, ILogger<MediatRPublisher> logger) : IMessagePublisher
 {
-    private readonly IMediator _mediator;
-    private readonly ILogger<MediatRPublisher> _logger;
-
-    private static readonly IReadOnlyDictionary<string, Type> TypeMap =
-        new Dictionary<string, Type>
+    private static readonly Dictionary<string, Type> TypeMap =
+        new()
         {
-            [MessageTypes.Orders.Created]     = typeof(OrderCreatedEvent),
-            [MessageTypes.Payments.Processed] = typeof(PaymentProcessedEvent),
+            [MessageTypes.Orders.Created] = typeof(OrderCreatedEvent),
             [MessageTypes.Stripe.PaymentSucceeded] = typeof(StripePaymentSucceededEvent),
         };
-
-    public MediatRPublisher(IMediator mediator, ILogger<MediatRPublisher> logger)
-    {
-        _mediator = mediator;
-        _logger   = logger;
-    }
 
     public async Task PublishAsync(string messageType, string jsonPayload, CancellationToken ct = default)
     {
         if (!TypeMap.TryGetValue(messageType, out Type? type))
         {
-            _logger.LogWarning("Unknown message type: {MessageType}. Skipping.", messageType);
+            logger.LogWarning("Unknown message type: {MessageType}. Skipping.", messageType);
             return;
         }
 
@@ -40,8 +30,8 @@ public sealed class MediatRPublisher : IMessagePublisher
             throw new InvalidOperationException($"Failed to deserialize: {messageType}");
         }
 
-        _logger.LogInformation("Publishing {Type} via MediatR", messageType);
+        logger.LogInformation("Publishing {Type} via MediatR", messageType);
 
-        await _mediator.Publish(mediatrNotification, ct);
+        await mediator.Publish(mediatrNotification, ct);
     }
 }

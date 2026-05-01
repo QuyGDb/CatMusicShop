@@ -123,14 +123,14 @@ export function CheckoutForm() {
             {cart.items.map((item) => (
               <div key={item.id} className="flex gap-4">
                 <div className="h-16 w-16 rounded-md bg-muted overflow-hidden flex-shrink-0">
-                  <img src={item.imageUrl || '/assets/placeholder-record.jpg'} alt={item.productName} className="h-full w-full object-cover" />
+                  <img src={item.coverUrl || '/assets/placeholder-record.jpg'} alt={item.productName} className="h-full w-full object-cover" />
                 </div>
                 <div className="flex-1 flex flex-col justify-center">
                   <span className="font-bold text-sm line-clamp-1">{item.productName}</span>
                   <span className="text-xs text-muted-foreground">Qty: {item.quantity}</span>
                 </div>
                 <div className="flex items-center">
-                  <span className="font-bold">${(item.price * item.quantity).toFixed(2)}</span>
+                  <span className="font-bold">${(item.unitPrice * item.quantity).toFixed(2)}</span>
                 </div>
               </div>
             ))}

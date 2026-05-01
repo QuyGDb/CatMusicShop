@@ -15,9 +15,9 @@ public sealed class StripePaymentSucceededHandler(
         logger.LogInformation("Stripe payment succeeded for Order {OrderId}. Updating status.", notification.OrderId);
 
         UpdateOrderStatusCommand command = new(
-            notification.OrderId, 
-            OrderStatus.Confirmed, 
-            null, 
+            notification.OrderId,
+            OrderStatus.Confirmed,
+            null,
             notification.StripeSessionId);
 
         await mediator.Send(command, ct);

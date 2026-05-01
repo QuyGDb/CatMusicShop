@@ -18,4 +18,9 @@ public static class OrderErrors
         "Order.CannotCancel",
         "This order cannot be cancelled in its current state.",
         ErrorType.Conflict);
+
+    public static readonly Error InvalidStatusTransition = new(
+        "Order.InvalidStatusTransition",
+        "This status transition is not allowed.",
+        ErrorType.Conflict);
 }
