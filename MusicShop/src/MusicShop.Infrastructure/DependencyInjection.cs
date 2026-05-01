@@ -76,12 +76,8 @@ public static class DependencyInjection
 
         services.AddScoped<ITokenService, JwtTokenService>();
 
-        // 5. Register Redis & Caching
-        services.AddStackExchangeRedisCache(options =>
-        {
-            options.Configuration = configuration.GetConnectionString("Redis");
-            options.InstanceName = "MusicShop_";
-        });
+        // 5. Caching (Using In-Memory Distributed Cache)
+        services.AddDistributedMemoryCache();
         services.AddSingleton<ICacheService, CacheService>();
 
         // 6. Register AWS S3
