@@ -3,6 +3,7 @@ using MusicShop.Domain.Entities.Catalog;
 using MusicShop.Domain.Entities.Shop;
 using MusicShop.Domain.Entities.Orders;
 using MusicShop.Domain.Entities.System;
+using MusicShop.Domain.Entities.Messaging;
 using System.Reflection;
 
 namespace MusicShop.Infrastructure.Persistence;
@@ -41,8 +42,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
     // 5. Payments
     public DbSet<Payment> Payments => Set<Payment>();
-    public DbSet<ProcessedWebhookEvent> ProcessedWebhookEvents => Set<ProcessedWebhookEvent>();
-
 
     // 7. Notifications (System)
     public DbSet<NotificationLog> NotificationLogs => Set<NotificationLog>();
@@ -50,6 +49,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     // Legacy/Extra
     public DbSet<AdminActivityLog> AdminActivityLogs => Set<AdminActivityLog>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+
+    // 8. Messaging (Outbox/Inbox)
+    public DbSet<Message> Messages => Set<Message>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

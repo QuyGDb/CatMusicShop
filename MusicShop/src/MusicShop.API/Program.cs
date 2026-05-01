@@ -7,8 +7,11 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using MusicShop.API.Middleware;
-using MusicShop.Infrastructure.Persistence;
 using MusicShop.Domain.Interfaces;
+using MusicShop.Infrastructure.Persistence;
+using MusicShop.Infrastructure.Messaging;
+using Hangfire;
+
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -113,6 +116,28 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// 6. Hangfire Dashboard
+app.UseHangfireDashboard("/hangfire", new DashboardOptions
+{
+    Authorization = new[] { new MusicShop.API.Infrastructure.HangfireAdminAuthorizationFilter() }
+});
+
+// 7. Recurring Jobs
+using (IServiceScope scope = app.Services.CreateScope())
+{
+    IRecurringJobManager recurringJobs = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
+    
+    // Remove old/obsolete jobs from database
+    recurringJobs.RemoveIfExists("process-outbox-messages");
+    recurringJobs.RemoveIfExists("process-inbox-messages");
+
+    recurringJobs.AddOrUpdate<MessagePollingJob>(
+        "message-poller",
+        job => job.PollAsync(default),
+        "*/2 * * * *"); // Every 2 minutes
+}
+
 
 //5.Initialize Database & Seed data
 using (IServiceScope scope = app.Services.CreateScope())

@@ -1,16 +1,17 @@
 using MediatR;
+using MusicShop.Application.Common.Constants;
 using MusicShop.Application.Common.Interfaces;
 using MusicShop.Application.Common.Models;
 using MusicShop.Domain.Common;
-using MusicShop.Domain.Entities.Orders;
-using MusicShop.Domain.Interfaces;
+using System.Text.Json;
+using MusicShop.Application.UseCases.Shop.Orders.Commands.UpdateOrderStatus;
+using MusicShop.Application.Events;
 
 namespace MusicShop.Application.UseCases.Shop.Payments.Commands.ProcessStripeWebhook;
 
 public sealed class ProcessStripeWebhookCommandHandler(
     IStripeService stripeService,
-    IRepository<ProcessedWebhookEvent> eventRepository,
-    IMediator mediator) : IRequestHandler<ProcessStripeWebhookCommand, MusicShop.Domain.Common.Result>
+    IInboxHandler inboxHandler) : IRequestHandler<ProcessStripeWebhookCommand, Result>
 {
     public async Task<Result> Handle(ProcessStripeWebhookCommand request, CancellationToken cancellationToken)
     {
@@ -26,17 +27,23 @@ public sealed class ProcessStripeWebhookCommandHandler(
             return Result.Failure(result.Error!);
         }
 
-        if (await eventRepository.AnyAsync(x => x.StripeEventId == result.StripeEventId, cancellationToken))
+        // 1. Extract info from the command if it's an UpdateOrderStatusCommand
+        if (result.Command is UpdateOrderStatusCommand updateCommand)
         {
-            return Result.Success();
+            StripePaymentSucceededEvent @event = new()
+            {
+                OrderId = updateCommand.OrderId,
+                StripeSessionId = updateCommand.TransactionCode ?? string.Empty
+            };
+
+            // 2. Save to Inbox for reliable processing
+            await inboxHandler.HandleAsync(
+                messageId: result.StripeEventId!,
+                messageType: MessageTypes.Stripe.PaymentSucceeded,
+                payload: JsonSerializer.Serialize(@event),
+                ct: cancellationToken);
         }
 
-        eventRepository.Add(new ProcessedWebhookEvent
-        {
-            StripeEventId = result.StripeEventId!,
-            EventType = result.EventType!
-        });
-
-        return await mediator.Send(result.Command!, cancellationToken);
+        return Result.Success();
     }
 }

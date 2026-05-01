@@ -3,10 +3,14 @@ using MusicShop.Application.Common.Interfaces;
 using MusicShop.Application.DTOs.Shop;
 using MusicShop.Domain.Common;
 using MusicShop.Domain.Entities.Orders;
+using MusicShop.Domain.Entities.Shop;
 using MusicShop.Domain.Enums;
 using MusicShop.Domain.Errors;
 using MusicShop.Domain.Interfaces;
-using MusicShop.Domain.Entities.Shop;
+using MusicShop.Application.Common.Constants;
+using MusicShop.Application.Events;
+using MusicShop.Domain.Entities.Messaging;
+using System.Text.Json;
 
 namespace MusicShop.Application.UseCases.Shop.Orders.Commands.CreateOrder;
 
@@ -16,7 +20,9 @@ public sealed class CreateOrderCommandHandler(
     IProductRepository productRepository,
     IUnitOfWork unitOfWork,
     ICurrentUserService currentUserService,
-    IStripeService stripeService) : IRequestHandler<CreateOrderCommand, Result<CreateOrderResponse>>
+    IStripeService stripeService,
+    IRepository<Message> messageRepository,
+    IJobService jobService) : IRequestHandler<CreateOrderCommand, Result<CreateOrderResponse>>
 {
     public async Task<Result<CreateOrderResponse>> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
     {
@@ -26,7 +32,7 @@ public sealed class CreateOrderCommandHandler(
         }
 
         // 1. Fetch cart with items
-        Domain.Entities.Orders.Cart? cart = await cartRepository.GetByUserIdAsync(userId, cancellationToken);
+        MusicShop.Domain.Entities.Orders.Cart? cart = await cartRepository.GetByUserIdAsync(userId, cancellationToken);
 
         if (cart == null || cart.Items.Count == 0)
         {
@@ -90,9 +96,32 @@ public sealed class CreateOrderCommandHandler(
         order.Payment = payment;
 
         orderRepository.Add(order);
+
+        // 6. Record Outbox Message
+        string idempotencyKey = $"orders.order.created:{order.Id}";
+        
+        Message outbox = new()
+        {
+            Direction = MessageDirection.Outbox,
+            Type = MessageTypes.Orders.Created,
+            IdempotencyKey = idempotencyKey,
+            Payload = JsonSerializer.Serialize(new OrderCreatedEvent
+            {
+                OrderId = order.Id,
+                UserId = order.UserId,
+                Total = order.TotalAmount,
+                CreatedAt = order.CreatedAt
+            })
+        };
+
+        messageRepository.Add(outbox);
+
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        // 7. Create Stripe Session
+        // 7. Enqueue processing AFTER save
+        jobService.EnqueueMessageProcessing(outbox.Id);
+
+        // 8. Create Stripe Session
         Result<StripeCheckoutDto> stripeResult = await stripeService.CreateCheckoutSessionAsync(
             order,
             request.SuccessUrl,

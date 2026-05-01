@@ -16,6 +16,11 @@ using Amazon.Runtime;
 using Amazon;
 using Amazon.Extensions.NETCore.Setup;
 using MusicShop.Application.Common.Models;
+using MusicShop.Infrastructure.Messaging;
+
+using Hangfire;
+using Hangfire.PostgreSql;
+
 
 namespace MusicShop.Infrastructure;
 
@@ -100,6 +105,22 @@ public static class DependencyInjection
             .ValidateOnStart();
 
         services.AddScoped<IEmailService, GmailEmailService>();
+
+        // 8. Configure Hangfire
+        services.AddHangfire(config => config
+            .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+            .UseSimpleAssemblyNameTypeSerializer()
+            .UseRecommendedSerializerSettings()
+            .UsePostgreSqlStorage(options => options.UseNpgsqlConnection(connectionString)));
+
+        services.AddHangfireServer();
+
+        // 9. Reliable Messaging
+        services.AddScoped<IMessagePublisher, MediatRPublisher>();
+        services.AddScoped<IInboxHandler, InboxHandler>();
+        services.AddScoped<IMessageProcessor, MessageProcessor>();
+        services.AddScoped<IJobService, HangfireJobService>();
+        services.AddScoped<MessagePollingJob>();
 
         return services;
     }
