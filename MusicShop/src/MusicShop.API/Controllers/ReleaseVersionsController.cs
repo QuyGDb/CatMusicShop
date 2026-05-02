@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MusicShop.API.Controllers.Base;
 using MusicShop.Application.UseCases.Catalog.ReleaseVersions.Commands.CreateReleaseVersion;
 using MusicShop.Application.UseCases.Catalog.ReleaseVersions.Commands.UpdateReleaseVersion;
 using MusicShop.Application.UseCases.Catalog.ReleaseVersions.Commands.DeleteReleaseVersion;
@@ -17,7 +18,7 @@ public class ReleaseVersionsController(IMediator mediator) : BaseApiController
     [HttpGet("by-release/{releaseId:guid}")]
     public async Task<ActionResult<ApiResponse<IReadOnlyList<ReleaseVersionDto>>>> GetByRelease(Guid releaseId)
     {
-        var result = await mediator.Send(new GetReleaseVersionsByReleaseQuery(releaseId));
+        Result<IReadOnlyList<ReleaseVersionDto>> result = await mediator.Send(new GetReleaseVersionsByReleaseQuery(releaseId));
         return HandleResult(result);
     }
 
@@ -35,7 +36,7 @@ public class ReleaseVersionsController(IMediator mediator) : BaseApiController
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ApiResponse<Guid>>> CreateReleaseVersion([FromBody] CreateReleaseVersionCommand command)
     {
-        var result = await mediator.Send(command);
+        Result<Guid> result = await mediator.Send(command);
         return HandleCreatedResult(result, nameof(GetByRelease), _ => new { releaseId = command.ReleaseId });
     }
 
@@ -47,7 +48,7 @@ public class ReleaseVersionsController(IMediator mediator) : BaseApiController
     public async Task<ActionResult<ApiResponse<Guid>>> UpdateReleaseVersion(Guid id, [FromBody] UpdateReleaseVersionCommand command)
     {
         if (id != command.Id) return BadRequest();
-        var result = await mediator.Send(command);
+        Result<Guid> result = await mediator.Send(command);
         return HandleResult(result);
     }
 

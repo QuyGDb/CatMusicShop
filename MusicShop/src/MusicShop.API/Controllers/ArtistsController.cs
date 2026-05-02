@@ -10,6 +10,7 @@ using MusicShop.Application.UseCases.Catalog.Artists.Queries.GetArtistBySlug;
 using MusicShop.Application.UseCases.Catalog.Artists.Queries.GetArtists;
 using MusicShop.Domain.Common;
 using MusicShop.Application.Common;
+using MusicShop.API.Controllers.Base;
 
 namespace MusicShop.API.Controllers;
 

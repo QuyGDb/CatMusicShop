@@ -1,233 +1,224 @@
-# MusicShop — Complete Project Documentation
-
----
-
-## 1. Project Overview
+# MusicShop — Business Documentation
 
 > Music Shop · ASP.NET Core 10
 
-### 1.1 Overview
-MusicShop is an online platform for selling physical media (vinyl, CD, cassette). The Admin is the sole manager of the catalog.
-
-The key differentiator is the detailed catalog management and specialized attributes for different physical media formats.
-
+MusicShop is an online platform for selling physical media (vinyl, CD, cassette). The Admin is the sole manager of the catalog. The key differentiator is the detailed catalog management and specialized attributes for different physical media formats.
 
 ---
 
-# MusicShop — Tài liệu Nghiệp vụ
+## Table of Contents
+
+0. [Feature Overview](#0-feature-overview)
+1. [User Roles](#1-user-roles)
+2. [Music Catalog](#2-music-catalog)
+3. [Products & Sales](#3-products--sales)
+4. [Order Process](#4-order-process)
+5. [Payments](#5-payments)
+6. [Notifications & Business Events](#6-notifications--business-events)
 
 ---
 
-## Mục lục
+## 0. Feature Overview
 
-0. [Tổng quan tính năng](#0-tổng-quan-tính-năng)
-1. [Vai trò người dùng](#1-vai-trò-người-dùng)
-2. [Catalog âm nhạc](#2-catalog-âm-nhạc)
-3. [Sản phẩm & Bán hàng](#3-sản-phẩm--bán-hàng)
-4. [Quy trình đơn hàng](#4-quy-trình-đơn-hàng)
-5. [Thanh toán](#5-thanh-toán)
-6. [Thông báo & Sự kiện nghiệp vụ](#6-thông-báo--sự-kiện-nghiệp-vụ)
+### 0.1 Authentication & Accounts
 
-## 0. Tổng quan tính năng
+- User registration (Local)
+- Login / logout (Local + Google Auth)
+- Role-based access control (Guest / Customer / Admin)
 
-### 0.1 Xác thực & Tài khoản
-* Đăng ký tài khoản (Local)
-* Đăng nhập / đăng xuất (Local + Google Auth)
-* Phân quyền theo vai trò (Guest / Customer / Admin)
+### 0.2 Catalog & Products
 
-### 0.2 Catalog & Sản phẩm
-* Xem sản phẩm: general, random
-* Lọc sản phẩm (thể loại nhạc, định dạng (cd, cassette, vinyl), nghệ sĩ, quốc gia, giá, thập niên)
-* Tìm kiếm sản phẩm (tên album, single, ep, tên bài hát, thể loại nhạc, định dạng (cd, cassette, vinyl), nghệ sĩ, quốc gia)
-* Xem chi tiết sản phẩm (thông tin nghệ sĩ, phiên bản, tracklist)
-* Xem sản phẩm theo bộ sưu tập chủ đề (Curated Collections)
-* Quản lý catalog (Admin: thêm / sửa / xóa nghệ sĩ, products)
+- Browse products: general, random
+- Filter products (music genre, format (CD, cassette, vinyl), artist, country, price, decade)
+- Search products (album name, single, EP, track name, music genre, format (CD, cassette, vinyl), artist, country)
+- View product details (artist info, edition, tracklist)
+- Browse products by curated collections
+- Catalog management (Admin: add / edit / delete artists, products)
 
-### 0.3 Mua hàng
-* Thêm sản phẩm vào giỏ hàng
-* Đặt hàng
-* Chọn phương thức thanh toán (Stripe)
-* Đặt hàng trước (Pre-order)
-* Theo dõi trạng thái đơn hàng
-* Hủy đơn hàng (Customer: chỉ khi Pending / Admin: từ Confirmed trở đi)
-* Đánh giá sản phẩm sau khi đơn hoàn thành
+### 0.3 Shopping
 
-### 0.4 Thanh toán
-* Thanh toán online qua cổng Stripe
-* Ghi nhận lịch sử giao dịch
+- Add products to cart
+- Place orders
+- Choose payment method (Stripe)
+- Pre-order items
+- Track order status
+- Cancel orders (Customer: only when Pending / Admin: from Confirmed onward)
+- Review products after order completion
 
-### 0.5 Quản lý đơn hàng (Admin)
-* Xác nhận đơn hàng
-* Cập nhật trạng thái ship
-* Hủy đơn hàng
-* Xem báo cáo doanh thu
+### 0.4 Payments
 
+- Online payment via Stripe gateway
+- Transaction history recording
 
+### 0.5 Order Management (Admin)
 
-### 0.6 Thông báo
-* Gửi email xác nhận khi đơn được tạo
-* Gửi email khi đơn được xác nhận
-* Gửi email kèm thông tin vận chuyển khi đơn được ship
-* Gửi email mời đánh giá khi đơn hoàn thành
-* Gửi email thông báo khi đơn bị hủy
+- Confirm orders
+- Update shipping status
+- Cancel orders
+- View revenue reports
+
+### 0.6 Notifications
+
+- Send confirmation email when an order is placed
+- Send email when an order is confirmed
+- Send email with shipping information when an order is shipped
+- Send review invitation email when an order is completed
+- Send cancellation notification email when an order is cancelled
 
 ---
 
-## 1. Vai trò người dùng
+## 1. User Roles
 
-| Vai trò | Mô tả | Quyền hạn |
+| Role | Description | Permissions |
 |---|---|---|
-| **Guest** | Khách vãng lai, chưa đăng nhập | Xem danh mục, tìm kiếm & lọc sản phẩm |
-| **Customer** | Khách hàng đã đăng ký (Email hoặc Google) | Mua hàng, theo dõi đơn |
-| **Admin** | Chủ shop | Quản lý catalog, xác nhận / ship / hủy đơn, xem báo cáo doanh thu, xem log hành động |
+| **Guest** | Unauthenticated visitor | Browse catalog, search & filter products |
+| **Customer** | Registered user (Email or Google) | Purchase items, track orders |
+| **Admin** | Shop owner | Manage catalog, confirm / ship / cancel orders, view revenue reports, view action logs |
 
 ---
 
-## 2. Catalog âm nhạc
+## 2. Music Catalog
 
-Kho dữ liệu âm nhạc — tách biệt hoàn toàn khỏi logic mua bán. Đây là nền tảng để AI hoạt động và để quản lý thông tin sản phẩm chính xác.
+The music data store is completely separate from the buying/selling logic. This serves as the foundation for AI functionality and for accurate product information management.
 
-### 2.1 Phân cấp dữ liệu
+### 2.1 Data Hierarchy
 
 ```
-Nghệ sĩ  ──→  Bản phát hành gốc  ──→  Phiên bản cụ thể  ──→  Tracklist
+Artist  ──→  Original Release  ──→  Specific Edition  ──→  Tracklist
 ```
 
-| Thực thể | Thông tin lưu trữ | Ví dụ |
+| Entity | Stored Information | Examples |
 |---|---|---|
-| **Nghệ sĩ** | Tên, tiểu sử, thể loại, quốc gia | Pink Floyd, Miles Davis |
-| **Bản phát hành gốc** | Tên album, năm phát hành, thể loại, ảnh bìa | "Dark Side of the Moon" (1973) |
-| **Phiên bản cụ thể** | Lần ép, quốc gia, định dạng, số catalog, hãng đĩa | US first press, Japan obi 1976, 2011 Remaster |
-| **Tracklist** | Vị trí, tên bài, thời lượng | Side A — Track 1: Speak to Me |
+| **Artist** | Name, biography, genre, country | Pink Floyd, Miles Davis |
+| **Original Release** | Album name, release year, genre, cover art | "Dark Side of the Moon" (1973) |
+| **Specific Edition** | Pressing number, country, format, catalog number, record label | US first press, Japan obi 1976, 2011 Remaster |
+| **Tracklist** | Position, track name, duration | Side A — Track 1: Speak to Me |
 
-### 2.2 Lý do phân tách Bản gốc và Phiên bản
+### 2.2 Why Separate Original Release from Specific Edition
 
-Một album gốc có thể có hàng chục phiên bản khác nhau, mỗi phiên bản có giá, tình trạng và tồn kho riêng biệt. Phân cấp này giúp quản lý chính xác từng bản in mà không trùng lặp thông tin nghệ thuật.
+A single original album can have dozens of different editions, each with its own price, condition, and inventory. This hierarchy enables accurate management of each individual pressing without duplicating artistic information.
 
-### 2.3 Hãng đĩa (Label)
+### 2.3 Record Labels
 
-Lưu trữ thông tin hãng đĩa liên kết với từng phiên bản cụ thể: tên hãng, quốc gia, năm thành lập, website.
+Stores record label information linked to each specific edition: label name, country, founding year, website.
 
 ---
 
-## 3. Sản phẩm & Bán hàng
+## 3. Products & Sales
 
-### 3.1 Loại sản phẩm
+### 3.1 Product Types
 
 - Vinyl
 - CD
 - Cassette
 
-### 3.2 Biến thể sản phẩm
+### 3.2 Product Variants
 
-Mỗi sản phẩm có thể có nhiều biến thể. Mỗi biến thể có giá và tồn kho độc lập.
+Each product can have multiple variants. Each variant has its own independent price and inventory.
 
 **Vinyl**
 
-| Nhóm | Ví dụ |
+| Group | Examples |
 |---|---|
-| Màu đĩa | Black, Colored, Splatter, Picture disc |
-| Trọng lượng | 140g (standard), 180g (audiophile) |
-| Tốc độ | 33⅓ RPM, 45 RPM |
-| Số đĩa | 1LP, 2LP, Box set |
-| Phiên bản bìa | Standard sleeve, Gatefold, Obi strip |
-| Chữ ký | Signed by artist |
+| Disc color | Black, Colored, Splatter, Picture disc |
+| Weight | 140g (standard), 180g (audiophile) |
+| Speed | 33⅓ RPM, 45 RPM |
+| Disc count | 1LP, 2LP, Box set |
+| Sleeve edition | Standard sleeve, Gatefold, Obi strip |
+| Autograph | Signed by artist |
 
 **CD**
 
-| Nhóm | Ví dụ |
+| Group | Examples |
 |---|---|
-| Nội dung | Standard, Deluxe / Expanded (bonus tracks), Box set |
-| Phiên bản quốc gia | Japan edition (thường có bonus track riêng) |
-| Chữ ký | Signed by artist |
+| Content | Standard, Deluxe / Expanded (bonus tracks), Box set |
+| Regional edition | Japan edition (often includes exclusive bonus tracks) |
+| Autograph | Signed by artist |
 
 **Cassette**
 
-| Nhóm | Ví dụ |
+| Group | Examples |
 |---|---|
-| Màu băng | Black, Clear, White, Colored |
-| Phiên bản | Standard, Limited edition |
-| Chữ ký | Signed by artist |
+| Tape color | Black, Clear, White, Colored |
+| Edition | Standard, Limited edition |
+| Autograph | Signed by artist |
 
-### 3.3 Tính năng đặc biệt
+### 3.3 Special Features
 
 **Limited Edition**
-- Số lượng giới hạn được xác định từ trước.
-- Không được phép tăng số lượng giới hạn sau khi bắt đầu bán.
+
+- A fixed quantity is determined before sales begin.
+- The limited quantity may not be increased once sales have started.
 
 **Pre-order**
-- Khách hàng đặt trước trước ngày phát hành.
-- Tồn kho không bị trừ cho đến khi đến ngày phát hành thực tế.
 
-### 3.4 Quy tắc tồn kho
+- Customers place orders before the official release date.
+- Inventory is not decremented until the actual release date arrives.
 
-- Hết hàng → tự động đánh dấu không thể mua, ẩn khỏi danh sách có hàng.
-- Không được xóa sản phẩm khi đang có đơn hàng ở trạng thái Pending hoặc Confirmed.
-- Khi hàng về kho → hệ thống tự động thông báo cho các khách hàng có sản phẩm đó trong Wantlist.
+### 3.4 Inventory Rules
 
-### 3.5 Bộ sưu tập sản phẩm (Curated Collections)
+- Out of stock → automatically marked as unavailable for purchase, hidden from in-stock listings.
+- Products cannot be deleted while there are orders in Pending or Confirmed status.
+- When stock is replenished → the system automatically notifies customers who have that product in their Wantlist.
 
-Admin có thể tạo các bộ sưu tập theo chủ đề biên tập.
+### 3.5 Curated Collections
 
-Ví dụ: *Horror Soundtracks*, *Video Game OST*, *Vietnam New Wave*.
+The Admin can create editorially themed collections.
+
+Examples: *Horror Soundtracks*, *Video Game OST*, *Vietnam New Wave*.
 
 ---
 
-## 4. Quy trình đơn hàng
+## 4. Order Process
 
-### 4.1 Vòng đời đơn hàng
+### 4.1 Order Lifecycle
 
 ```
 Pending → Confirmed → Shipped → Delivered → Completed
              ↓
-          Cancelled (chỉ Admin từ trạng thái này trở đi)
+          Cancelled (Admin only, from this state onward)
 ```
 
-| Trạng thái | Mô tả |
+| Status | Description |
 |---|---|
-| **Pending** | Khách vừa đặt hàng, chờ xác nhận |
-| **Confirmed** | Admin đã xác nhận đơn |
-| **Shipped** | Đơn đã được gửi đi |
-| **Delivered** | Đơn đã đến tay khách |
-| **Completed** | Hoàn tất, khách có thể để lại đánh giá |
-| **Cancelled** | Đơn bị hủy |
+| **Pending** | Customer just placed the order, awaiting confirmation |
+| **Confirmed** | Admin has confirmed the order |
+| **Shipped** | Order has been dispatched |
+| **Delivered** | Order has reached the customer |
+| **Completed** | Fully complete; customer may leave a review |
+| **Cancelled** | Order has been cancelled |
 
-### 4.2 Quy tắc nghiệp vụ
+### 4.2 Business Rules
 
-- **Checkout:** trừ tồn kho ngay khi đặt hàng thành công.
-- **Hủy ở trạng thái Pending:** hoàn toàn bộ tồn kho về như cũ.
-- **Hủy từ Confirmed trở lên:** chỉ Admin mới có quyền thực hiện.
-- **Mỗi đơn chỉ có đúng 1 lần thanh toán.**
-
+- **Checkout:** inventory is decremented immediately upon successful order placement.
+- **Cancellation at Pending:** full inventory is restored to its previous level.
+- **Cancellation from Confirmed onward:** only the Admin has the authority to do this.
+- **Each order has exactly one payment.**
 
 ---
 
-## 5. Thanh toán
+## 5. Payments
 
-### 5.1 Phương thức thanh toán
+### 5.1 Payment Methods
 
-| Phương thức | Mô tả |
+| Method | Description |
 |---|---|
-| **Stripe** | Thanh toán online qua cổng Stripe |
+| **Stripe** | Online payment via Stripe gateway |
 
-### 5.2 Thông tin ghi nhận
+### 5.2 Recorded Information
 
-Mỗi lần thanh toán lưu: số tiền, phương thức thanh toán, mã giao dịch, thời điểm thanh toán, trạng thái.
+Each payment transaction stores: amount, payment method, transaction ID, timestamp, and status.
 
 ---
 
-## 6. Thông báo & Sự kiện nghiệp vụ
+## 6. Notifications & Business Events
 
-### 6.1 Thông báo theo vòng đời đơn hàng
+### 6.1 Order Lifecycle Notifications
 
-| Sự kiện | Hành động thông báo |
+| Event | Notification Action |
 |---|---|
-| Đơn được tạo | Gửi email xác nhận đơn hàng cho khách |
-| Đơn được xác nhận | Gửi email cập nhật trạng thái |
-| Đơn đã ship | Gửi email kèm thông tin vận chuyển |
-| Đơn hoàn thành | Gửi email mời khách đánh giá sản phẩm |
-| Đơn bị hủy | Gửi email thông báo hủy đơn |
-
-
----
-
+| Order placed | Send order confirmation email to customer |
+| Order confirmed | Send status update email |
+| Order shipped | Send email with shipping information |
+| Order completed | Send review invitation email to customer |
+| Order cancelled | Send cancellation notification email |

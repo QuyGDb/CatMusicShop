@@ -11,6 +11,7 @@ using MusicShop.Application.UseCases.Auth.Queries.GetMe;
 using MusicShop.Application.UseCases.Auth.Commands.GoogleLogin;
 using MusicShop.API.Infrastructure;
 using MusicShop.Domain.Common;
+using MusicShop.API.Controllers.Base;
 
 namespace MusicShop.API.Controllers;
 

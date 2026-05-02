@@ -1,6 +1,9 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using MusicShop.API.Controllers.Base;
 using MusicShop.API.Infrastructure;
+using MusicShop.Domain.Common;
+using MusicShop.Application.Common;
 using MusicShop.Application.DTOs.Shop;
 using MusicShop.Application.UseCases.Shop.CuratedCollections.Queries.GetCuratedCollectionById;
 using MusicShop.Application.UseCases.Shop.CuratedCollections.Queries.GetCuratedCollections;
@@ -24,7 +27,7 @@ public sealed class CuratedCollectionsController(IMediator mediator) : BaseApiCo
         [FromQuery] int pageSize = 10,
         [FromQuery] string? searchQuery = null)
     {
-        var result = await mediator.Send(new GetCuratedCollectionsQuery(includeUnpublished, pageNumber, pageSize, searchQuery));
+        Result<PaginatedResult<CuratedCollectionResponse>> result = await mediator.Send(new GetCuratedCollectionsQuery(includeUnpublished, pageNumber, pageSize, searchQuery));
         return HandlePaginatedResult(result);
     }
 
@@ -32,7 +35,7 @@ public sealed class CuratedCollectionsController(IMediator mediator) : BaseApiCo
     [AllowAnonymous]
     public async Task<ActionResult<ApiResponse<IReadOnlyList<CuratedCollectionFeaturedResponse>>>> GetFeaturedCollections([FromQuery] int count = 3)
     {
-        var result = await mediator.Send(new GetFeaturedCollectionsQuery(count));
+        Result<IReadOnlyList<CuratedCollectionFeaturedResponse>> result = await mediator.Send(new GetFeaturedCollectionsQuery(count));
         return HandleResult(result);
     }
 
@@ -40,7 +43,7 @@ public sealed class CuratedCollectionsController(IMediator mediator) : BaseApiCo
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ApiResponse<CuratedCollectionDetailResponse>>> GetCuratedCollectionById([FromRoute] Guid id)
     {
-        var result = await mediator.Send(new GetCuratedCollectionByIdQuery(id));
+        Result<CuratedCollectionDetailResponse> result = await mediator.Send(new GetCuratedCollectionByIdQuery(id));
         return HandleResult(result);
     }
 
@@ -50,7 +53,7 @@ public sealed class CuratedCollectionsController(IMediator mediator) : BaseApiCo
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ApiResponse<Guid>>> CreateCuratedCollection([FromBody] CreateCuratedCollectionCommand command)
     {
-        var result = await mediator.Send(command);
+        Result<Guid> result = await mediator.Send(command);
         return HandleCreatedResult(result, nameof(GetCuratedCollectionById), id => new { id });
     }
 
@@ -60,7 +63,7 @@ public sealed class CuratedCollectionsController(IMediator mediator) : BaseApiCo
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ApiResponse<Guid>>> UpdateCuratedCollection([FromRoute] Guid id, [FromBody] UpdateCuratedCollectionRequest request)
     {
-        var result = await mediator.Send(new UpdateCuratedCollectionCommand(id, request.Title, request.Description, request.IsPublished));
+        Result<Guid> result = await mediator.Send(new UpdateCuratedCollectionCommand(id, request.Title, request.Description, request.IsPublished));
         return HandleResult(result);
     }
 
@@ -70,7 +73,7 @@ public sealed class CuratedCollectionsController(IMediator mediator) : BaseApiCo
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ApiResponse<Unit>>> UpdateCuratedCollectionStatus([FromRoute] Guid id, [FromBody] bool isPublished)
     {
-        var result = await mediator.Send(new UpdateCuratedCollectionStatusCommand(id, isPublished));
+        Result<Unit> result = await mediator.Send(new UpdateCuratedCollectionStatusCommand(id, isPublished));
         return HandleResult(result);
     }
 
@@ -81,7 +84,7 @@ public sealed class CuratedCollectionsController(IMediator mediator) : BaseApiCo
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ApiResponse<Guid>>> AddProductToCollection([FromRoute] Guid id, [FromBody] AddProductToCollectionRequest request)
     {
-        var result = await mediator.Send(new AddProductToCollectionCommand(id, request.ProductId, request.SortOrder));
+        Result<Guid> result = await mediator.Send(new AddProductToCollectionCommand(id, request.ProductId, request.SortOrder));
         return HandleResult(result);
     }
 
@@ -91,7 +94,7 @@ public sealed class CuratedCollectionsController(IMediator mediator) : BaseApiCo
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ApiResponse<Unit>>> RemoveProductFromCollection([FromRoute] Guid id, [FromRoute] Guid productId)
     {
-        var result = await mediator.Send(new RemoveProductFromCollectionCommand(id, productId));
+        Result<Unit> result = await mediator.Send(new RemoveProductFromCollectionCommand(id, productId));
         return HandleResult(result);
     }
 
@@ -101,7 +104,7 @@ public sealed class CuratedCollectionsController(IMediator mediator) : BaseApiCo
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ApiResponse<Unit>>> DeleteCuratedCollection([FromRoute] Guid id)
     {
-        var result = await mediator.Send(new DeleteCuratedCollectionCommand(id));
+        Result<Unit> result = await mediator.Send(new DeleteCuratedCollectionCommand(id));
         return HandleResult(result);
     }
 }

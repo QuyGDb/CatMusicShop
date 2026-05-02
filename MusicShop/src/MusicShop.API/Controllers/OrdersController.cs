@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MusicShop.API.Controllers.Base;
 using MusicShop.API.Infrastructure;
 using MusicShop.Application.Common;
 using MusicShop.Application.DTOs.Shop;

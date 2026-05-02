@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using MusicShop.API.Controllers.Base;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using MusicShop.Application.Common;
@@ -18,7 +19,7 @@ public class LabelsController(IMediator mediator) : BaseApiController
     [HttpGet]
     public async Task<ActionResult<ApiResponse<IReadOnlyList<LabelResponse>>>> GetLabels([FromQuery] GetLabelsQuery query)
     {
-        var result = await mediator.Send(query);
+        Result<PaginatedResult<LabelResponse>> result = await mediator.Send(query);
         return HandlePaginatedResult(result);
     }
 
@@ -26,7 +27,7 @@ public class LabelsController(IMediator mediator) : BaseApiController
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ApiResponse<LabelResponse>>> GetLabel(string slug)
     {
-        var result = await mediator.Send(new GetLabelBySlugQuery(slug));
+        Result<LabelResponse> result = await mediator.Send(new GetLabelBySlugQuery(slug));
         return HandleResult(result);
     }
 
@@ -37,7 +38,7 @@ public class LabelsController(IMediator mediator) : BaseApiController
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<ApiResponse<string>>> CreateLabel([FromBody] CreateLabelCommand command)
     {
-        var result = await mediator.Send(command);
+        Result<string> result = await mediator.Send(command);
         return HandleCreatedResult(result, nameof(GetLabel), value => new { slug = value });
     }
 
@@ -48,7 +49,7 @@ public class LabelsController(IMediator mediator) : BaseApiController
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<ApiResponse<string>>> UpdateLabel(Guid id, [FromBody] UpdateLabelRequest request)
     {
-        var result = await mediator.Send(new UpdateLabelCommand(
+        Result<string> result = await mediator.Send(new UpdateLabelCommand(
             id, 
             request.Name, 
             request.Slug, 

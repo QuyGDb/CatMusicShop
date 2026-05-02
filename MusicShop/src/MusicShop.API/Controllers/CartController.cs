@@ -11,6 +11,7 @@ using MusicShop.Application.UseCases.Shop.Cart.Commands.RemoveFromCart;
 using MusicShop.Application.UseCases.Shop.Cart.Commands.UpdateCartItem;
 using MusicShop.Application.UseCases.Shop.Cart.Queries.GetCart;
 using MusicShop.Domain.Common;
+using MusicShop.API.Controllers.Base;
 
 namespace MusicShop.API.Controllers;
 
@@ -38,7 +39,7 @@ public sealed class CartController(
             GetUserId(),
             request.ProductId,
             request.Quantity));
-            
+
         return HandleResult(result);
     }
 

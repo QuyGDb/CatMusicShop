@@ -1,7 +1,9 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MusicShop.API.Controllers.Base;
 using MusicShop.API.Infrastructure;
+using MusicShop.Application.Common;
 using MusicShop.Application.DTOs.Catalog;
 using MusicShop.Application.UseCases.Catalog.Releases.Commands.CreateRelease;
 using MusicShop.Application.UseCases.Catalog.Releases.Commands.DeleteRelease;
@@ -18,7 +20,7 @@ public class ReleasesController(IMediator mediator) : BaseApiController
     [HttpGet]
     public async Task<ActionResult<ApiResponse<IReadOnlyList<ReleaseResponse>>>> GetReleases([FromQuery] GetReleasesQuery query)
     {
-        var result = await mediator.Send(query);
+        Result<PaginatedResult<ReleaseResponse>> result = await mediator.Send(query);
         return HandlePaginatedResult(result);
     }
 
@@ -27,7 +29,7 @@ public class ReleasesController(IMediator mediator) : BaseApiController
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ApiResponse<ReleaseDetailResponse>>> GetRelease(string slug)
     {
-        var result = await mediator.Send(new GetReleaseBySlugQuery(slug));
+        Result<ReleaseDetailResponse> result = await mediator.Send(new GetReleaseBySlugQuery(slug));
         return HandleResult(result);
     }
 
@@ -37,7 +39,7 @@ public class ReleasesController(IMediator mediator) : BaseApiController
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ApiResponse<Guid>>> CreateRelease([FromBody] CreateReleaseCommand command)
     {
-        var result = await mediator.Send(command);
+        Result<Guid> result = await mediator.Send(command);
         return HandleCreatedResult(result, nameof(GetRelease), _ => new { slug = command.Slug });
     }
 
@@ -48,7 +50,7 @@ public class ReleasesController(IMediator mediator) : BaseApiController
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ApiResponse<Guid>>> UpdateRelease(Guid id, [FromBody] UpdateReleaseRequest request)
     {
-        var result = await mediator.Send(new UpdateReleaseCommand(
+        Result<Guid> result = await mediator.Send(new UpdateReleaseCommand(
             id, 
             request.Title, 
             request.Slug, 

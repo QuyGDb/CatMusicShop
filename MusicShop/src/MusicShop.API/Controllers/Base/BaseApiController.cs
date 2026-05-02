@@ -3,7 +3,7 @@ using MusicShop.API.Infrastructure;
 using MusicShop.Application.Common;
 using MusicShop.Domain.Common;
 
-namespace MusicShop.API.Controllers;
+namespace MusicShop.API.Controllers.Base;
 
 [ApiController]
 [Route("api/v1/[controller]")]

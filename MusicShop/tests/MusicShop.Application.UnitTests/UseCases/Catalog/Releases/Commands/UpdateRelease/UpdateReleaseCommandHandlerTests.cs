@@ -7,6 +7,7 @@ using MusicShop.Application.Common.Interfaces;
 using MusicShop.Domain.Interfaces;
 using MusicShop.Domain.Errors;
 using MusicShop.Domain.Enums;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 
 namespace MusicShop.Application.UnitTests.UseCases.Catalog.Releases.Commands.UpdateRelease;
@@ -16,6 +17,7 @@ public class UpdateReleaseCommandHandlerTests
     private readonly IReleaseRepository _releaseRepository;
     private readonly IRepository<Artist> _artistRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ILogger<UpdateReleaseCommandHandler> _logger;
     private readonly UpdateReleaseCommandHandler _handler;
 
     public UpdateReleaseCommandHandlerTests()
@@ -23,7 +25,8 @@ public class UpdateReleaseCommandHandlerTests
         _releaseRepository = Substitute.For<IReleaseRepository>();
         _artistRepository = Substitute.For<IRepository<Artist>>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
-        _handler = new UpdateReleaseCommandHandler(_releaseRepository, _artistRepository, _unitOfWork);
+        _logger = Substitute.For<ILogger<UpdateReleaseCommandHandler>>();
+        _handler = new UpdateReleaseCommandHandler(_releaseRepository, _artistRepository, _unitOfWork, _logger);
     }
 
     [Fact]
@@ -37,7 +40,6 @@ public class UpdateReleaseCommandHandlerTests
             "Updated Title",
             "updated-slug",
             2024,
-            "Album",
             artistId,
             null,
             null,
@@ -80,7 +82,6 @@ public class UpdateReleaseCommandHandlerTests
             "Updated Title",
             "updated-slug",
             2024,
-            "Album",
             newArtistId,
             null,
             null,
@@ -116,7 +117,7 @@ public class UpdateReleaseCommandHandlerTests
         // Arrange
         Guid releaseId = Guid.NewGuid();
         UpdateReleaseCommand command = new UpdateReleaseCommand(
-            releaseId, "Title", "slug", 2024, null, Guid.NewGuid(), null, null, null, null);
+            releaseId, "Title", "slug", 2024, Guid.NewGuid(), null, null, null, null);
         
         _releaseRepository.GetWithDetailsAsync(releaseId, track: true, Arg.Any<CancellationToken>())
             .Returns((Release?)null);
@@ -137,7 +138,7 @@ public class UpdateReleaseCommandHandlerTests
         Guid oldArtistId = Guid.NewGuid();
         Guid newArtistId = Guid.NewGuid();
         UpdateReleaseCommand command = new UpdateReleaseCommand(
-            releaseId, "Title", "slug", 2024, null, newArtistId, null, null, null, null);
+            releaseId, "Title", "slug", 2024, newArtistId, null, null, null, null);
 
         Release release = new Release { Id = releaseId, ArtistId = oldArtistId };
         

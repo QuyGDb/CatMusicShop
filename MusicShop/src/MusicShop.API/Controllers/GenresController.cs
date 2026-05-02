@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using MusicShop.API.Controllers.Base;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using MusicShop.Application.Common;
@@ -18,7 +19,7 @@ public class GenresController(IMediator mediator) : BaseApiController
     [HttpGet]
     public async Task<ActionResult<ApiResponse<IReadOnlyList<GenreResponse>>>> GetGenres([FromQuery] GetGenresQuery query)
     {
-        var result = await mediator.Send(query);
+        Result<PaginatedResult<GenreResponse>> result = await mediator.Send(query);
         return HandlePaginatedResult(result);
     }
 
@@ -26,7 +27,7 @@ public class GenresController(IMediator mediator) : BaseApiController
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ApiResponse<GenreResponse>>> GetGenre(string slug)
     {
-        var result = await mediator.Send(new GetGenreBySlugQuery(slug));
+        Result<GenreResponse> result = await mediator.Send(new GetGenreBySlugQuery(slug));
         return HandleResult(result);
     }
 
@@ -37,7 +38,7 @@ public class GenresController(IMediator mediator) : BaseApiController
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<ApiResponse<string>>> CreateGenre([FromBody] CreateGenreCommand command)
     {
-        var result = await mediator.Send(command);
+        Result<string> result = await mediator.Send(command);
         return HandleCreatedResult(result, nameof(GetGenre), value => new { slug = value });
     }
 
@@ -49,7 +50,7 @@ public class GenresController(IMediator mediator) : BaseApiController
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<ApiResponse<GenreResponse>>> UpdateGenre(Guid id, [FromBody] UpdateGenreRequest request)
     {
-        var result = await mediator.Send(new UpdateGenreCommand(id, request.Name, request.Slug));
+        Result<GenreResponse> result = await mediator.Send(new UpdateGenreCommand(id, request.Name, request.Slug));
         return HandleResult(result);
     }
 

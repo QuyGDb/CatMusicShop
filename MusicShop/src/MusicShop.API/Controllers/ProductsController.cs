@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MusicShop.API.Controllers.Base;
 using MusicShop.API.Infrastructure;
 using MusicShop.Application.Common;
 using MusicShop.Application.DTOs.Shop;
@@ -23,7 +24,7 @@ public sealed class ProductsController(IMediator mediator) : BaseApiController
         [FromQuery] GetProductsQuery query,
         CancellationToken cancellationToken)
     {
-        var result = await mediator.Send(query, cancellationToken);
+        Result<PaginatedResult<ProductListItemDto>> result = await mediator.Send(query, cancellationToken);
         return HandlePaginatedResult(result);
     }
 
@@ -33,7 +34,7 @@ public sealed class ProductsController(IMediator mediator) : BaseApiController
         string slug,
         CancellationToken cancellationToken)
     {
-        var result = await mediator.Send(new GetProductBySlugQuery(slug), cancellationToken);
+        Result<ProductDetailDto> result = await mediator.Send(new GetProductBySlugQuery(slug), cancellationToken);
         return HandleResult(result);
     }
 
@@ -44,7 +45,7 @@ public sealed class ProductsController(IMediator mediator) : BaseApiController
         Guid id,
         CancellationToken cancellationToken)
     {
-        var result = await mediator.Send(new GetProductByIdQuery(id), cancellationToken);
+        Result<ProductDetailDto> result = await mediator.Send(new GetProductByIdQuery(id), cancellationToken);
         return HandleResult(result);
     }
 
@@ -56,7 +57,7 @@ public sealed class ProductsController(IMediator mediator) : BaseApiController
         [FromBody] CreateProductCommand command,
         CancellationToken cancellationToken)
     {
-        var result = await mediator.Send(command, cancellationToken);
+        Result<Guid> result = await mediator.Send(command, cancellationToken);
         return HandleCreatedResult(result, nameof(GetProductBySlug), _ => new { slug = command.Slug });
     }
 
