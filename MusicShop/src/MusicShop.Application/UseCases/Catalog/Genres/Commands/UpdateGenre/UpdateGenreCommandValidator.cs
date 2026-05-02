@@ -15,7 +15,6 @@ public sealed class UpdateGenreCommandValidator : AbstractValidator<UpdateGenreC
 
         RuleFor(x => x.Slug)
             .NotEmpty().WithMessage("Slug is required.")
-            .MaximumLength(100).WithMessage("Slug must not exceed 100 characters.")
-            .Matches(@"^[a-z0-9-]+$").WithMessage("Slug must only contain lowercase letters, numbers, and hyphens.");
+            .MaximumLength(100).WithMessage("Slug must not exceed 100 characters.");
     }
 }

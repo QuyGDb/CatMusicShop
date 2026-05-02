@@ -7,7 +7,6 @@ public sealed class GetArtistBySlugQueryValidator : AbstractValidator<GetArtistB
     public GetArtistBySlugQueryValidator()
     {
         RuleFor(x => x.Slug)
-            .NotEmpty().WithMessage("Slug is required.")
-            .Matches(@"^[a-z0-9-]+$").WithMessage("Invalid slug format.");
+            .NotEmpty().WithMessage("Slug is required.");
     }
 }

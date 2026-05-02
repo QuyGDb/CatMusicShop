@@ -13,9 +13,42 @@ export function MusicHeroScene() {
   const { fontUrl, heroText, models } = useMusicHeroScene();
   const cameraRef = useRef<any>(null);
   const controlsRef = useRef<any>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const handleWheelGlobal = (event: WheelEvent) => {
+      const controls = controlsRef.current;
+      const container = containerRef.current;
+      if (!controls || !container) return;
+
+      // Only intercept if the mouse is over this component's container
+      if (!container.contains(event.target as Node)) return;
+
+      const distance = controls.getDistance();
+      const isScrollingDown = event.deltaY > 0;
+
+      // Check boundaries using the controls' own properties with a larger buffer
+      // to account for damping and event timing.
+      const atMax = distance >= (controls.maxDistance - 1.0);
+      const atMin = distance <= 51.5; 
+
+      if ((atMax && isScrollingDown) || (atMin && !isScrollingDown)) {
+        controls.enableZoom = false;
+      } else {
+        controls.enableZoom = true;
+      }
+    };
+
+    // Global capture phase ensures we run before the Canvas's native listeners
+    window.addEventListener('wheel', handleWheelGlobal, { capture: true });
+    return () => window.removeEventListener('wheel', handleWheelGlobal, { capture: true });
+  }, []);
 
   return (
-    <div style={{ width: '100%', height: '100vh', background: '#09090b' }}>
+    <div
+      ref={containerRef}
+      style={{ width: '100%', height: '100vh', background: '#09090b' }}
+    >
       <Canvas shadows dpr={[1, 2]}>
         <PerspectiveCamera
           ref={cameraRef}
@@ -23,7 +56,7 @@ export function MusicHeroScene() {
           position={[0.08, 8.68, -63.56]}
           fov={45}
         />
-        
+
         <Sky
           distance={450000}
           sunPosition={[0, -1, 0]}
@@ -60,7 +93,7 @@ export function MusicHeroScene() {
           minPolarAngle={1.292}
           maxPolarAngle={1.536}
         />
-        
+
         <HeroText
           fontUrl={fontUrl}
           text={heroText}

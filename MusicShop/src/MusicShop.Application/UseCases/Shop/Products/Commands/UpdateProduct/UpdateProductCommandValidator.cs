@@ -17,7 +17,6 @@ public sealed class UpdateProductCommandValidator : AbstractValidator<UpdateProd
         RuleFor(command => command.Slug)
             .NotEmpty()
             .MaximumLength(300)
-            .Matches(@"^[a-z0-9-]+$")
             .When(command => command.Slug is not null);
 
         RuleFor(command => command.LimitedQty)
