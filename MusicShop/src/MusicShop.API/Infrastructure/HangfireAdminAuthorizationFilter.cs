@@ -9,16 +9,23 @@ public sealed class HangfireAdminAuthorizationFilter : IDashboardAuthorizationFi
     {
         HttpContext httpContext = context.GetHttpContext();
 
-        // Allow access if running locally in Development
+        // Allow access if running in Development
         string? env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-        if (env == "Development" && IsLocalRequest(httpContext))
+        bool isDocker = Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true";
+
+        if (env == "Development")
         {
-            return true;
+            // In Docker, IsLocalRequest often fails due to bridge networking.
+            // We allow access in Dev mode if it's a local request OR if we are in a container.
+            if (isDocker || IsLocalRequest(httpContext))
+            {
+                return true;
+            }
         }
 
-        // Production check: must be authenticated as admin
+        // Production check: must be authenticated as Admin
         return httpContext.User.Identity?.IsAuthenticated == true
-            && httpContext.User.IsInRole("admin");
+            && httpContext.User.IsInRole("Admin");
     }
 
     private static bool IsLocalRequest(HttpContext context)

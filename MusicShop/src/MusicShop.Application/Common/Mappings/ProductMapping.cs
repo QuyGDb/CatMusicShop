@@ -20,7 +20,8 @@ public static class ProductMapping
             CoverUrl = product.CoverUrl,
             Price = product.Price,
             StockQty = product.StockQty,
-            InStock = product.StockQty > 0 && product.IsAvailable
+            InStock = product.StockQty > 0 && product.IsAvailable,
+            IsActive = product.IsActive
         };
     }
 

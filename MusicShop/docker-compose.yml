@@ -1,7 +1,7 @@
 services:
   postgres:
     image: ankane/pgvector:latest
-    container_name: musicshop-db
+    container_name: catmusicshop-db
     ports:
       - "5432:5432"
     environment:
@@ -11,22 +11,24 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - musicshop-network
+      - catmusicshop-network
 
-  musicshop-api:
+  catmusicshop-api:
     build:
       context: ./src
       dockerfile: MusicShop.API/Dockerfile
-    container_name: musicshop-api
+    container_name: catmusicshop-api
     ports:
       - "5000:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - ASPNETCORE_URLS=http://+:8080
       - ConnectionStrings__DefaultConnection=${DB_CONNECTION_STRING}
-      - AWS__BucketName=${AWS_BUCKET}
-      - AWS__Region=${AWS_REGION}
-      - AWS__CdnBaseUrl=${AWS_CDN}
+      - AWS__BucketName=${AWS__BucketName}
+      - AWS__Region=${AWS__Region}
+      - AWS__CdnBaseUrl=${AWS__CdnBaseUrl}
+      - AWS__AccessKey=${AWS__AccessKey}
+      - AWS__SecretKey=${AWS__SecretKey}
       - JwtSettings__Secret=${JWT_SECRET}
       - JwtSettings__Issuer=${JWT_ISSUER}
       - JwtSettings__Audience=${JWT_AUDIENCE}
@@ -42,25 +44,25 @@ services:
     depends_on:
       - postgres
     networks:
-      - musicshop-network
+      - catmusicshop-network
 
-  musicshop-web:
+  catmusicshop-web:
     build:
       context: ./src/musicshop-web
       dockerfile: Dockerfile
       args:
         - VITE_API_URL=http://localhost:5000/api/v1
-    container_name: musicshop-web
+    container_name: catmusicshop-web
     ports:
       - "3000:80"
     depends_on:
-      - musicshop-api
+      - catmusicshop-api
     networks:
-      - musicshop-network
+      - catmusicshop-network
 
 volumes:
   postgres_data:
 
 networks:
-  musicshop-network:
+  catmusicshop-network:
     driver: bridge
