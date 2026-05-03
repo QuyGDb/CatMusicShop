@@ -30,7 +30,7 @@ public class ReleaseVersionsController(IMediator mediator) : BaseApiController
     }
 
     [HttpPost]
-    [Authorize(Roles = "admin")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(ApiResponse<Guid>), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -41,7 +41,7 @@ public class ReleaseVersionsController(IMediator mediator) : BaseApiController
     }
 
     [HttpPut("{id:guid}")]
-    [Authorize(Roles = "admin")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -53,7 +53,7 @@ public class ReleaseVersionsController(IMediator mediator) : BaseApiController
     }
 
     [HttpDelete("{id:guid}")]
-    [Authorize(Roles = "admin")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteReleaseVersion(Guid id)

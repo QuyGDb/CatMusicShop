@@ -38,7 +38,7 @@ public sealed class ProductsController(IMediator mediator) : BaseApiController
         return HandleResult(result);
     }
 
-    [Authorize(Roles = "admin")]
+    [Authorize(Roles = "Admin")]
     [HttpGet("admin/{id:guid}")]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ApiResponse<ProductDetailDto>>> GetProductById(
@@ -49,7 +49,7 @@ public sealed class ProductsController(IMediator mediator) : BaseApiController
         return HandleResult(result);
     }
 
-    [Authorize(Roles = "admin")]
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     [ProducesResponseType(typeof(ApiResponse<Guid>), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -61,7 +61,7 @@ public sealed class ProductsController(IMediator mediator) : BaseApiController
         return HandleCreatedResult(result, nameof(GetProductBySlug), _ => new { slug = command.Slug });
     }
 
-    [Authorize(Roles = "admin")]
+    [Authorize(Roles = "Admin")]
     [HttpPatch("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -90,7 +90,7 @@ public sealed class ProductsController(IMediator mediator) : BaseApiController
         return HandleNoContentResult(result);
     }
 
-    [Authorize(Roles = "admin")]
+    [Authorize(Roles = "Admin")]
     [HttpDelete("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

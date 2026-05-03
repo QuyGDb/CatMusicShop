@@ -7,7 +7,6 @@ using MusicShop.Infrastructure.Persistence;
 using MusicShop.Infrastructure.Persistence.Repositories;
 using MusicShop.Infrastructure.Security;
 using MusicShop.Infrastructure.Services;
-using MusicShop.Infrastructure.Cache;
 using MusicShop.Infrastructure.Payments;
 using MusicShop.Application.Common.Interfaces;
 using MusicShop.Infrastructure.Storage;
@@ -76,9 +75,6 @@ public static class DependencyInjection
 
         services.AddScoped<ITokenService, JwtTokenService>();
 
-        // 5. Caching (Using In-Memory Distributed Cache)
-        services.AddDistributedMemoryCache();
-        services.AddSingleton<ICacheService, CacheService>();
 
         // 6. Register AWS S3
         services.AddOptions<S3Settings>()

@@ -6,65 +6,61 @@ namespace MusicShop.Application.Common.Mappings;
 
 public static class ProductMapping
 {
-    public static IQueryable<ProductListItemDto> ProjectToListItemDto(this IQueryable<Product> query)
+    public static ProductListItemDto ToListItemDto(this Product product)
     {
-        return query.Select(p => new ProductListItemDto
+        return new ProductListItemDto
         {
-            Id = p.Id,
-            Name = p.Name,
-            Slug = p.Slug,
-            ArtistName = p.ReleaseVersion != null && p.ReleaseVersion.Release != null && p.ReleaseVersion.Release.Artist != null 
-                ? p.ReleaseVersion.Release.Artist.Name 
-                : null,
-            Format = p.ReleaseVersion != null ? p.ReleaseVersion.Format : ReleaseFormat.Vinyl,
-            IsLimited = p.IsLimited,
-            IsPreorder = p.IsPreorder,
-            CoverUrl = p.CoverUrl,
-            Price = p.Price,
-            StockQty = p.StockQty,
-            InStock = p.StockQty > 0 && p.IsAvailable
-        });
+            Id = product.Id,
+            Name = product.Name,
+            Slug = product.Slug,
+            ArtistName = product.ReleaseVersion?.Release?.Artist?.Name,
+            Format = product.ReleaseVersion != null ? product.ReleaseVersion.Format : ReleaseFormat.Vinyl,
+            IsLimited = product.IsLimited,
+            IsPreorder = product.IsPreorder,
+            CoverUrl = product.CoverUrl,
+            Price = product.Price,
+            StockQty = product.StockQty,
+            InStock = product.StockQty > 0 && product.IsAvailable
+        };
     }
 
     /// <summary>
-    /// Projects Product entity to ProductDetailDto
+    /// Maps a Product entity to ProductDetailDto
     /// </summary>
-    public static IQueryable<ProductDetailDto> ProjectToDetailDto(this IQueryable<Product> query)
+    public static ProductDetailDto ToDetailDto(this Product product)
     {
-        return query.Select(p => new ProductDetailDto
+        return new ProductDetailDto
         {
-            Id = p.Id,
-            Name = p.Name,
-            Description = p.Description,
-            Format = p.ReleaseVersion != null ? p.ReleaseVersion.Format : ReleaseFormat.Vinyl,
-            IsLimited = p.IsLimited,
-            LimitedQty = p.LimitedQty,
-            IsPreorder = p.IsPreorder,
-            PreorderReleaseDate = p.PreorderReleaseDate,
-            CoverUrl = p.CoverUrl,
+            Id = product.Id,
+            Name = product.Name,
+            Description = product.Description,
+            Format = product.ReleaseVersion != null ? product.ReleaseVersion.Format : ReleaseFormat.Vinyl,
+            IsLimited = product.IsLimited,
+            LimitedQty = product.LimitedQty,
+            IsPreorder = product.IsPreorder,
+            PreorderReleaseDate = product.PreorderReleaseDate,
+            CoverUrl = product.CoverUrl,
             Artist = new ArtistShortDto
             {
-                Id = p.ReleaseVersion != null && p.ReleaseVersion.Release != null ? p.ReleaseVersion.Release.ArtistId : Guid.Empty,
-                Name = p.ReleaseVersion != null && p.ReleaseVersion.Release != null && p.ReleaseVersion.Release.Artist != null 
-                    ? p.ReleaseVersion.Release.Artist.Name 
-                    : string.Empty
+                Id = product.ReleaseVersion?.Release?.ArtistId ?? Guid.Empty,
+                Name = product.ReleaseVersion?.Release?.Artist?.Name ?? string.Empty
             },
-            Price = p.Price,
-            StockQty = p.StockQty,
-            IsAvailable = p.IsAvailable,
-            IsSigned = p.IsSigned,
-            VinylAttributes = p.VinylAttributes != null ? new VinylAttributesDto(
-                p.VinylAttributes.DiscColor,
-                p.VinylAttributes.WeightGrams,
-                p.VinylAttributes.SpeedRpm,
-                p.VinylAttributes.DiscCount,
-                p.VinylAttributes.SleeveType) : null,
-            CdAttributes = p.CdAttributes != null ? new CdAttributesDto(
-                p.CdAttributes.Edition,
-                p.CdAttributes.IsJapanEdition) : null,
-            CassetteAttributes = p.CassetteAttributes != null ? new CassetteAttributesDto(
-                p.CassetteAttributes.TapeColor,
-                p.CassetteAttributes.Edition) : null
-        });
+            Price = product.Price,
+            StockQty = product.StockQty,
+            IsAvailable = product.IsAvailable,
+            IsSigned = product.IsSigned,
+            VinylAttributes = product.VinylAttributes != null ? new VinylAttributesDto(
+                product.VinylAttributes.DiscColor,
+                product.VinylAttributes.WeightGrams,
+                product.VinylAttributes.SpeedRpm,
+                product.VinylAttributes.DiscCount,
+                product.VinylAttributes.SleeveType) : null,
+            CdAttributes = product.CdAttributes != null ? new CdAttributesDto(
+                product.CdAttributes.Edition,
+                product.CdAttributes.IsJapanEdition) : null,
+            CassetteAttributes = product.CassetteAttributes != null ? new CassetteAttributesDto(
+                product.CassetteAttributes.TapeColor,
+                product.CassetteAttributes.Edition) : null
+        };
     }
 }

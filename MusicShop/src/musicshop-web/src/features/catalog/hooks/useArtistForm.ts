@@ -70,8 +70,8 @@ export function useArtistForm({ editingArtist, onSuccess }: UseArtistFormProps):
       }
 
       onSuccess();
-    } catch (error) {
-      // Errors are handled by mutation hooks
+    } catch (error: any) {
+      toast.error(error.message)
     }
   };
 

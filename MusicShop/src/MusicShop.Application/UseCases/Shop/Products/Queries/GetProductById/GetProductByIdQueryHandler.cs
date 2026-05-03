@@ -28,8 +28,7 @@ public sealed class GetProductByIdQueryHandler : IRequestHandler<GetProductByIdQ
             return Result<ProductDetailDto>.Failure(ProductErrors.NotFound);
         }
 
-        // Manual mapping from Entity to DTO
-        ProductDetailDto productDetailDto = new[] { product }.AsQueryable().ProjectToDetailDto().First();
+        ProductDetailDto productDetailDto = product.ToDetailDto();
 
         return Result<ProductDetailDto>.Success(productDetailDto);
     }

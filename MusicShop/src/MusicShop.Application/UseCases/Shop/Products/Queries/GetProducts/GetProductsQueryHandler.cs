@@ -17,7 +17,7 @@ public sealed class GetProductsQueryHandler(IProductRepository productRepository
     {
         (IReadOnlyList<Product> products, int totalCount) = await productRepository.GetPagedAsync(request, cancellationToken);
 
-        List<ProductListItemDto> productListItemDtos = products.AsQueryable().ProjectToListItemDto().ToList();
+        List<ProductListItemDto> productListItemDtos = products.Select(product => product.ToListItemDto()).ToList();
 
         PaginatedResult<ProductListItemDto> paginatedResult = new PaginatedResult<ProductListItemDto>(
             productListItemDtos,

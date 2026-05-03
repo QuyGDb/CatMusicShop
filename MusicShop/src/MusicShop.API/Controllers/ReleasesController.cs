@@ -33,7 +33,7 @@ public class ReleasesController(IMediator mediator) : BaseApiController
         return HandleResult(result);
     }
 
-    [Authorize(Roles = "admin")]
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     [ProducesResponseType(typeof(ApiResponse<Guid>), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -43,7 +43,7 @@ public class ReleasesController(IMediator mediator) : BaseApiController
         return HandleCreatedResult(result, nameof(GetRelease), _ => new { slug = command.Slug });
     }
 
-    [Authorize(Roles = "admin")]
+    [Authorize(Roles = "Admin")]
     [HttpPut("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -64,7 +64,7 @@ public class ReleasesController(IMediator mediator) : BaseApiController
         return HandleResult(result);
     }
 
-    [Authorize(Roles = "admin")]
+    [Authorize(Roles = "Admin")]
     [HttpDelete("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

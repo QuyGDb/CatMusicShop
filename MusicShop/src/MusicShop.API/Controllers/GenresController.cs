@@ -31,7 +31,7 @@ public class GenresController(IMediator mediator) : BaseApiController
         return HandleResult(result);
     }
 
-    [Authorize(Roles = "admin")]
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -43,7 +43,7 @@ public class GenresController(IMediator mediator) : BaseApiController
     }
 
 
-    [Authorize(Roles = "admin")]
+    [Authorize(Roles = "Admin")]
     [HttpPut("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -54,7 +54,7 @@ public class GenresController(IMediator mediator) : BaseApiController
         return HandleResult(result);
     }
 
-    [Authorize(Roles = "admin")]
+    [Authorize(Roles = "Admin")]
     [HttpDelete("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

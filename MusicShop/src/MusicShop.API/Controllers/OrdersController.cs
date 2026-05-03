@@ -53,7 +53,7 @@ public sealed class OrdersController(IMediator mediator) : BaseApiController
         return HandleNoContentResult(result);
     }
 
-    [Authorize(Roles = "admin")]
+    [Authorize(Roles = "Admin")]
     [HttpGet("/api/v1/admin/orders")]
     public async Task<ActionResult<ApiResponse<IReadOnlyList<OrderListItemDto>>>> GetAdminOrders([FromQuery] GetAdminOrdersQuery query)
     {
@@ -61,7 +61,7 @@ public sealed class OrdersController(IMediator mediator) : BaseApiController
         return HandlePaginatedResult(result);
     }
 
-    [Authorize(Roles = "admin")]
+    [Authorize(Roles = "Admin")]
     [HttpPatch("/api/v1/admin/orders/{id:guid}/status")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

@@ -8,7 +8,7 @@ using MusicShop.Domain.Common;
 
 namespace MusicShop.API.Controllers;
 
-[Authorize(Roles = "admin")]
+[Authorize(Roles = "Admin")]
 public sealed class UploadsController(IMediator mediator) : BaseApiController
 {
     [HttpPost("image")]

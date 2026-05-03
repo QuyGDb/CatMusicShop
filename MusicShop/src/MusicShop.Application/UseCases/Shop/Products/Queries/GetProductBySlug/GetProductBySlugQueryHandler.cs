@@ -19,8 +19,7 @@ public sealed class GetProductBySlugQueryHandler(IProductRepository productRepos
             return Result<ProductDetailDto>.Failure(ProductErrors.NotFound);
         }
 
-        // Manual mapping from Entity to DTO using ProjectToDetailDto extensions
-        ProductDetailDto productDetailDto = new[] { product }.AsQueryable().ProjectToDetailDto().First();
+        ProductDetailDto productDetailDto = product.ToDetailDto();
 
         return Result<ProductDetailDto>.Success(productDetailDto);
     }
