@@ -282,7 +282,7 @@ Key production changes vs your current `docker-compose.yml`:
 - `restart: always` on all services
 - Health check on PostgreSQL
 - `depends_on` with `condition: service_healthy`
-- `VITE_API_URL` points to your Elastic IP (`3.107.13.5`)
+- `VITE_API_URL` points to your DuckDNS domain (`https://catmusicshop.duckdns.org`)
 
 ### 3.4 Build & Start
 
@@ -475,7 +475,7 @@ Your current config only exposes Swagger in Development. If you want it accessib
 
 The `VITE_API_URL` build arg in `docker-compose.prod.yml` must match your production domain:
 ```
-VITE_API_URL=https://yourdomain.com/api/v1
+VITE_API_URL=https://catmusicshop.duckdns.org/api/v1
 ```
 
 ---
