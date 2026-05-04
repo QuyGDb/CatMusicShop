@@ -26,7 +26,7 @@ services:
     container_name: catmusicshop-api
     restart: always
     ports:
-      - "127.0.0.1:5000:8080" # Bind to localhost only — Nginx proxies externally
+      - "127.0.0.1:5000:8080" # Bind to localhost only — Nginx handles external HTTPS traffic
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - ASPNETCORE_URLS=http://+:8080
@@ -59,11 +59,11 @@ services:
       context: ./src/musicshop-web
       dockerfile: Dockerfile
       args:
-        - VITE_API_URL=https://yourdomain.com/api/v1 # REPLACE with your actual domain
+        - VITE_API_URL=https://catmusicshop.duckdns.org/api/v1
     container_name: catmusicshop-web
     restart: always
     ports:
-      - "127.0.0.1:3000:80" # Bind to localhost only — Nginx proxies externally
+      - "127.0.0.1:3000:80" # Bind to localhost only — Nginx handles external HTTPS traffic
     depends_on:
       - catmusicshop-api
     networks:

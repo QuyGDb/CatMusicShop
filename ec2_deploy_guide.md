@@ -68,7 +68,7 @@ This guide covers **Docker Compose on EC2** — the fastest path given your exis
 | Type | Protocol | Port | Source | Description |
 |------|----------|------|--------|-------------|
 | SSH | TCP | 22 | **Your IP only** (`x.x.x.x/32`) | Admin access |
-| HTTP | TCP | 80 | `0.0.0.0/0` | Web traffic |
+| HTTP | TCP | 80 | `0.0.0.0/0` | Web traffic (Standard) |
 | HTTPS | TCP | 443 | `0.0.0.0/0` | Web traffic (SSL) |
 
 > [!CAUTION]
@@ -88,7 +88,7 @@ This guide covers **Docker Compose on EC2** — the fastest path given your exis
 
 ```bash
 chmod 400 your-key.pem
-ssh -i your-key.pem ubuntu@<ELASTIC-IP>
+ssh -i your-key.pem ubuntu@3.107.13.5
 ```
 
 ### 2.2 System Update
@@ -143,7 +143,7 @@ cd CatMusicShop/MusicShop
 **Option B — SCP from local machine:**
 ```bash
 # From your Windows machine (PowerShell)
-scp -i your-key.pem -r D:\CatMusicShop\MusicShop ubuntu@<ELASTIC-IP>:~/MusicShop
+scp -i your-key.pem -r D:\CatMusicShop\MusicShop ubuntu@3.107.13.5:~/MusicShop
 ```
 
 ### 3.2 Create `.env`
@@ -229,7 +229,7 @@ services:
     container_name: catmusicshop-api
     restart: always
     ports:
-      - "127.0.0.1:5000:8080"      # Bind to localhost only
+      - "127.0.0.1:5000:8080"      # Bind to localhost only (Nginx handles SSL)
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - ASPNETCORE_URLS=http://+:8080
@@ -259,11 +259,11 @@ services:
       context: ./src/musicshop-web
       dockerfile: Dockerfile
       args:
-        - VITE_API_URL=https://yourdomain.com/api/v1
+        - VITE_API_URL=https://catmusicshop.duckdns.org/api/v1
     container_name: catmusicshop-web
     restart: always
     ports:
-      - "127.0.0.1:3000:80"        # Bind to localhost only
+      - "127.0.0.1:3000:80"        # Bind to localhost only (Nginx handles SSL)
     depends_on:
       - catmusicshop-api
     networks:
@@ -278,11 +278,11 @@ networks:
 ```
 
 Key production changes vs your current `docker-compose.yml`:
-- All ports bound to `127.0.0.1` — only accessible via Nginx reverse proxy
+- All ports bound to `0.0.0.0` (Direct access via IP)
 - `restart: always` on all services
 - Health check on PostgreSQL
 - `depends_on` with `condition: service_healthy`
-- `VITE_API_URL` points to your production domain
+- `VITE_API_URL` points to your Elastic IP (`3.107.13.5`)
 
 ### 3.4 Build & Start
 
@@ -306,6 +306,7 @@ docker logs catmusicshop-web --tail 20
 ### 4.1 Install Nginx on Host
 
 ```bash
+sudo apt update
 sudo apt install -y nginx
 sudo systemctl enable nginx
 ```
@@ -313,14 +314,14 @@ sudo systemctl enable nginx
 ### 4.2 Configure Nginx
 
 ```bash
-sudo nano /etc/nginx/sites-available/musicshop
+sudo nano /etc/nginx/sites-available/catmusicshop
 ```
 
 ```nginx
 # Redirect HTTP to HTTPS (after SSL is configured)
 server {
     listen 80;
-    server_name yourdomain.com www.yourdomain.com;
+    server_name catmusicshop.duckdns.org;
 
     # Required for Certbot ACME challenge
     location /.well-known/acme-challenge/ {
@@ -334,11 +335,11 @@ server {
 
 server {
     listen 443 ssl http2;
-    server_name yourdomain.com www.yourdomain.com;
+    server_name catmusicshop.duckdns.org;
 
     # SSL certs will be filled by Certbot
-    # ssl_certificate     /etc/letsencrypt/live/yourdomain.com/fullchain.pem;
-    # ssl_certificate_key /etc/letsencrypt/live/yourdomain.com/privkey.pem;
+    # ssl_certificate     /etc/letsencrypt/live/catmusicshop.duckdns.org/fullchain.pem;
+    # ssl_certificate_key /etc/letsencrypt/live/catmusicshop.duckdns.org/privkey.pem;
 
     # Security headers
     add_header X-Frame-Options "SAMEORIGIN" always;
@@ -373,7 +374,7 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
-    # Hangfire Dashboard (restrict access)
+    # Hangfire Dashboard
     location /hangfire {
         proxy_pass http://127.0.0.1:5000;
         proxy_http_version 1.1;
@@ -381,10 +382,6 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
-
-        # Optional: restrict to your IP
-        # allow x.x.x.x;
-        # deny all;
     }
 
     # Frontend (React SPA)
@@ -401,27 +398,18 @@ server {
 
 ```bash
 # Enable the site
-sudo ln -s /etc/nginx/sites-available/musicshop /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/catmusicshop /etc/nginx/sites-enabled/
 sudo rm /etc/nginx/sites-enabled/default
 
 # Test config
 sudo nginx -t
 
-# For initial setup (before SSL), comment out the entire :443 block
-# and change the :80 block to proxy directly. Then restart:
+# For initial setup (before SSL), you can temporarily comment out the 443 block
+# or just run Certbot immediately.
 sudo systemctl restart nginx
 ```
 
-### 4.3 Domain DNS Setup
-
-1. Go to your domain registrar (Namecheap, GoDaddy, Route53, etc.)
-2. Create an **A Record**:
-   - **Host**: `@` (or subdomain)
-   - **Value**: `<ELASTIC-IP>`
-   - **TTL**: 300
-3. Optionally add a `CNAME` for `www` → `yourdomain.com`
-
-### 4.4 Install SSL with Certbot
+### 4.3 Install SSL with Certbot
 
 ```bash
 # Install Certbot
@@ -431,7 +419,7 @@ sudo snap install --classic certbot
 sudo ln -s /snap/bin/certbot /usr/bin/certbot
 
 # Obtain certificate (auto-configures Nginx)
-sudo certbot --nginx -d yourdomain.com -d www.yourdomain.com
+sudo certbot --nginx -d catmusicshop.duckdns.org
 
 # Test auto-renewal
 sudo certbot renew --dry-run
@@ -458,8 +446,7 @@ builder.Services.AddCors(options =>
         policy.WithOrigins(
                 "http://localhost:3000",
                 "http://localhost:5173",
-                "https://yourdomain.com",    // ADD THIS
-                "https://www.yourdomain.com" // ADD THIS
+                "https://catmusicshop.duckdns.org"
             )
             .AllowAnyMethod()
             .AllowAnyHeader()
