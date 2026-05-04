@@ -260,6 +260,7 @@ services:
       dockerfile: Dockerfile
       args:
         - VITE_API_URL=https://catmusicshop.duckdns.org/api/v1
+        - VITE_GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
     container_name: catmusicshop-web
     restart: always
     ports:
@@ -323,30 +324,6 @@ server {
     listen 80;
     server_name catmusicshop.duckdns.org;
 
-    # Required for Certbot ACME challenge
-    location /.well-known/acme-challenge/ {
-        root /var/www/html;
-    }
-
-    location / {
-        return 301 https://$host$request_uri;
-    }
-}
-
-server {
-    listen 443 ssl http2;
-    server_name catmusicshop.duckdns.org;
-
-    # SSL certs will be filled by Certbot
-    # ssl_certificate     /etc/letsencrypt/live/catmusicshop.duckdns.org/fullchain.pem;
-    # ssl_certificate_key /etc/letsencrypt/live/catmusicshop.duckdns.org/privkey.pem;
-
-    # Security headers
-    add_header X-Frame-Options "SAMEORIGIN" always;
-    add_header X-Content-Type-Options "nosniff" always;
-    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
-    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
-
     # API proxy
     location /api/ {
         proxy_pass http://127.0.0.1:5000;
@@ -360,28 +337,8 @@ server {
         proxy_cache_bypass $http_upgrade;
         proxy_read_timeout 300s;
 
-        # Large file uploads (product images)
+        # Large file uploads
         client_max_body_size 20M;
-    }
-
-    # Stripe webhooks
-    location /api/v1/webhooks/ {
-        proxy_pass http://127.0.0.1:5000;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    # Hangfire Dashboard
-    location /hangfire {
-        proxy_pass http://127.0.0.1:5000;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
     }
 
     # Frontend (React SPA)
@@ -513,7 +470,7 @@ VITE_API_URL=https://catmusicshop.duckdns.org/api/v1
 cd ~/CatMusicShop/MusicShop
 
 # Pull latest code
-git pull origin main
+git pull origin master 
 
 # Rebuild and restart
 docker compose -f docker-compose.prod.yml up -d --build

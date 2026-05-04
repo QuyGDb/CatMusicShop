@@ -60,6 +60,7 @@ services:
       dockerfile: Dockerfile
       args:
         - VITE_API_URL=https://catmusicshop.duckdns.org/api/v1
+        - VITE_GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
     container_name: catmusicshop-web
     restart: always
     ports:
