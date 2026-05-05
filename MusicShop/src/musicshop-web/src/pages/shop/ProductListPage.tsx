@@ -1,6 +1,7 @@
 import React from 'react';
 import { ProductCard, FilterBar, useProductsList, useProductFilters } from '@/features/products';
-import { Loader2, Music2 } from 'lucide-react';
+import { Loader2, Music2, Filter } from 'lucide-react';
+
 
 export default function ProductListPage() {
   const {
@@ -14,30 +15,42 @@ export default function ProductListPage() {
 
   const { setPage } = useProductFilters();
 
+  const [showFilters, setShowFilters] = React.useState(false);
+
   return (
-    <div className="min-h-screen bg-background text-foreground pt-24 pb-12">
+    <div className="min-h-screen bg-background text-foreground pt-20 sm:pt-24 pb-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Header Area */}
-        <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="mb-8 sm:mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-2">
-            <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
+            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
               Explore Collection
             </h1>
-            <p className="text-muted-foreground max-w-xl">
+            <p className="text-muted-foreground text-sm sm:text-base max-w-xl">
               Discover high-quality vinyl records and CDs from your favorite artists.
             </p>
           </div>
-          <div className="flex items-center gap-4 text-sm text-subtle font-medium">
-            <span>Showing {products.length} of {totalItems} items</span>
+          <div className="flex items-center justify-between md:justify-end gap-4">
+            <span className="text-xs sm:text-sm text-subtle font-medium">
+              Showing {products.length} of {totalItems} items
+            </span>
+            <button 
+              onClick={() => setShowFilters(!showFilters)}
+              className="lg:hidden flex items-center gap-2 px-4 py-2 bg-surface border border-border rounded-xl text-sm font-bold text-foreground"
+            >
+              <Filter className="h-4 w-4" />
+              Filters
+            </button>
           </div>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar Filters */}
-          <aside className="lg:w-64 flex-shrink-0">
+          <aside className={`lg:w-64 flex-shrink-0 ${showFilters ? 'block' : 'hidden lg:block'}`}>
             <FilterBar />
           </aside>
+
 
           {/* Product Grid */}
           <main className="flex-1">

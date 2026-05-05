@@ -63,13 +63,13 @@ export function ManagementLayout({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex flex-col gap-1">
-          <h1 className="text-4xl font-extrabold tracking-tight text-foreground">{title}</h1>
-          <p className="text-muted-foreground">{subtitle}</p>
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-foreground">{title}</h1>
+          <p className="text-muted-foreground text-sm sm:text-base">{subtitle}</p>
         </div>
         {onCreate && createLabel && (
           <Button
             onClick={onCreate}
-            className="bg-primary hover:bg-primary-dark text-primary-foreground h-12 px-6 rounded-xl shadow-lg shadow-primary/20"
+            className="w-full sm:w-auto bg-primary hover:bg-primary-dark text-primary-foreground h-12 px-6 rounded-xl shadow-lg shadow-primary/20"
           >
             <Plus className="h-5 w-5 mr-2" />
             {createLabel}
@@ -79,22 +79,23 @@ export function ManagementLayout({
 
       {/* Filters Bar */}
       {(onSearchChange || filterContent) && (
-        <div className="flex flex-wrap gap-4 items-center">
+        <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center">
           {onSearchChange && (
-            <div className="relative flex-1 min-w-[300px]">
+            <div className="relative flex-1">
               <Search className="h-5 w-5 absolute left-4 top-1/2 -translate-y-1/2 text-subtle" />
               <input
                 type="text"
                 placeholder={searchPlaceholder}
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
-                className="w-full h-14 bg-surface border border-border rounded-2xl pl-12 pr-4 focus:outline-none focus:border-primary transition-all shadow-sm"
+                className="w-full h-14 bg-surface border border-border rounded-2xl pl-12 pr-4 focus:outline-none focus:border-primary transition-all shadow-sm text-sm"
               />
             </div>
           )}
-          {filterContent && <div className="flex gap-2">{filterContent}</div>}
+          {filterContent && <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0">{filterContent}</div>}
         </div>
       )}
+
 
       {/* Main Content */}
       <div className="space-y-8">
@@ -120,7 +121,8 @@ export function ManagementLayout({
 }
 
 interface EmptyStateProps {
-  icon: React.ElementType;
+  icon: React.ComponentType<{ className?: string }>;
+
   title: string;
   description: string;
   action?: React.ReactNode;
