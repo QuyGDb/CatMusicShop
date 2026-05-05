@@ -158,9 +158,14 @@ using (IServiceScope scope = app.Services.CreateScope())
         AppDbContext context = services.GetRequiredService<AppDbContext>();
         IPasswordHasher passwordHasher = services.GetRequiredService<IPasswordHasher>();
         ILogger<Program> logger = services.GetRequiredService<ILogger<Program>>();
+        
+        AdminSettings adminSettings = services.GetRequiredService<Microsoft.Extensions.Options.IOptions<AdminSettings>>().Value;
+
 
         logger.LogInformation("Checking database for seeding...");
-        await DbInitializer.SeedAsync(context, passwordHasher);
+        await DbInitializer.SeedAsync(context, passwordHasher, adminSettings);
+
+
         logger.LogInformation("Database initialization complete.");
     }
     catch (Exception ex)

@@ -71,6 +71,11 @@ public static class DependencyInjection
             .Bind(configuration.GetSection(GoogleSettings.SectionName))
             .ValidateOnStart();
 
+        services.AddOptions<AdminSettings>()
+            .Bind(configuration.GetSection(AdminSettings.SectionName))
+            .ValidateOnStart();
+
+
         services.AddStripeServices(configuration);
 
         services.AddScoped<ITokenService, JwtTokenService>();

@@ -8,26 +8,30 @@ using CsvHelper;
 using CsvHelper.Configuration;
 using System.Globalization;
 using System.Reflection;
+using MusicShop.Infrastructure.Security;
+
 
 namespace MusicShop.Infrastructure.Persistence;
 
 public static class DbInitializer
 {
-    public static async Task SeedAsync(AppDbContext context, IPasswordHasher passwordHasher)
+    public static async Task SeedAsync(AppDbContext context, IPasswordHasher passwordHasher, AdminSettings adminSettings)
     {
         await context.Database.MigrateAsync();
 
         // 1. Seed Admin
         if (!await context.Users.AnyAsync(u => u.Role == UserRole.Admin))
         {
-            var adminUser = new User
+            User adminUser = new User
             {
-                Email = "admin@musicshop.com",
-                FullName = "System Admin",
-                PasswordHash = passwordHasher.Hash("Admin@123"),
+                Email = adminSettings.Email,
+                FullName = adminSettings.FullName,
+                PasswordHash = passwordHasher.Hash(adminSettings.Password),
                 Role = UserRole.Admin,
                 IdentityProvider = "Local"
             };
+
+
             await context.Users.AddAsync(adminUser);
             await context.SaveChangesAsync();
         }
