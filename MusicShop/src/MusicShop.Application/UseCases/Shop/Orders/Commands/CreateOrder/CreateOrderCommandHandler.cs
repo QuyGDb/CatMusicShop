@@ -97,7 +97,30 @@ public sealed class CreateOrderCommandHandler(
 
         orderRepository.Add(order);
 
+        // 6. Record Outbox Message
+        string idempotencyKey = MessageTypes.BuildKey(MessageTypes.Orders.Created, order.Id);
+
+        Message outbox = new()
+        {
+            Direction = MessageDirection.Outbox,
+            Type = MessageTypes.Orders.Created,
+            IdempotencyKey = idempotencyKey,
+            Payload = JsonSerializer.Serialize(new OrderCreatedEvent
+            {
+                OrderId = order.Id,
+                UserId = order.UserId,
+                Total = order.TotalAmount,
+                CreatedAt = order.CreatedAt
+            })
+        };
+
+        messageRepository.Add(outbox);
+
         await unitOfWork.SaveChangesAsync(cancellationToken);
+
+        // 7. Enqueue processing AFTER save
+        jobService.EnqueueMessageProcessing(outbox.Id);
+
 
         // 7. Create Stripe Session
         Result<StripeCheckoutDto> stripeResult = await stripeService.CreateCheckoutSessionAsync(

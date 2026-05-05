@@ -15,7 +15,7 @@ using MusicShop.API.Controllers.Base;
 
 namespace MusicShop.API.Controllers;
 
-public class AuthController(IMediator mediator) : BaseApiController
+public class AuthController(IMediator mediator, Microsoft.AspNetCore.Hosting.IWebHostEnvironment env) : BaseApiController
 {
     [HttpPost("register")]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -114,11 +114,12 @@ public class AuthController(IMediator mediator) : BaseApiController
         CookieOptions cookieOptions = new()
         {
             HttpOnly = true,
-            Secure = true, // Set to true for production (requires HTTPS)
-            SameSite = SameSiteMode.Strict,
+            Secure = !env.IsDevelopment(),
+            SameSite = SameSiteMode.Lax,
             Expires = DateTime.UtcNow.AddDays(7)
         };
 
         Response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
     }
+
 }

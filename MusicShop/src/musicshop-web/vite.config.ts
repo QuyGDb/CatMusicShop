@@ -16,8 +16,16 @@ export default defineConfig({
     host: true,
     headers: {
       'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
+    },
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+      }
     }
+
   },
+
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src')
