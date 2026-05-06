@@ -2,7 +2,9 @@
 
 > Music Shop · ASP.NET Core 10
 
-MusicShop is an online platform for selling physical media (vinyl, CD, cassette). The Admin is the sole manager of the catalog. The key differentiator is the detailed catalog management and specialized attributes for different physical media formats.
+MusicShop is an online platform for selling **Physical Media** (**Vinyl**, **CD**, **Cassette**). The **Admin** is the sole manager of the **Catalog**. The key differentiator is detailed **Catalog** management and specialized **Attributes** for different **Physical Media Formats**.
+
+> **Bold terms** mark entity-candidate keywords for ERD/domain modeling.
 
 ---
 
@@ -22,48 +24,48 @@ MusicShop is an online platform for selling physical media (vinyl, CD, cassette)
 
 ### 0.1 Authentication & Accounts
 
-- User registration (Local)
+- **User** registration (Local)
 - Login / logout (Local + Google Auth)
-- Role-based access control (Guest / Customer / Admin)
+- **Role**-based access control (**Guest** / **Customer** / **Admin**)
 
 ### 0.2 Catalog & Products
 
-- Browse products: general, random
-- Filter products (music genre, format (CD, cassette, vinyl), artist, country, price, decade)
-- Search products (album name, single, EP, track name, music genre, format (CD, cassette, vinyl), artist, country)
-- View product details (artist info, edition, tracklist)
-- Browse products by curated collections
-- Catalog management (Admin: add / edit / delete artists, products)
+- Browse **Products**: general, random
+- Filter **Products** (**Genre**, **Format**: **CD**, **Cassette**, **Vinyl**, **Artist**, **Country**, **Price**, **Decade**)
+- Search **Products** (**Album**, **Single**, **EP**, **Track**, **Genre**, **Format**, **Artist**, **Country**)
+- View **Product** details (**Artist** info, **Edition**, **Tracklist**)
+- Browse **Products** by **Curated Collections**
+- **Catalog** management (**Admin**: add / edit / delete **Artists**, **Products**)
 
 ### 0.3 Shopping
 
-- Add products to cart
-- Place orders
-- Choose payment method (Stripe)
-- Pre-order items
-- Track order status
-- Cancel orders (Customer: only when Pending / Admin: from Confirmed onward)
-- Review products after order completion
+- Add **Products** to **Cart**
+- Place **Orders**
+- Choose **Payment Method** (**Stripe**)
+- **Pre-order** items
+- Track **Order Status**
+- Cancel **Orders** (**Customer**: only when **Pending** / **Admin**: from **Confirmed** onward)
+- **Review** **Products** after **Order** completion
 
 ### 0.4 Payments
 
-- Online payment via Stripe gateway
-- Transaction history recording
+- Online **Payment** via **Stripe** gateway
+- **Transaction** history recording
 
 ### 0.5 Order Management (Admin)
 
-- Confirm orders
-- Update shipping status
-- Cancel orders
-- View revenue reports
+- Confirm **Orders**
+- Update **Shipping Status**
+- Cancel **Orders**
+- View **Revenue Reports**
 
 ### 0.6 Notifications
 
-- Send confirmation email when an order is placed
-- Send email when an order is confirmed
-- Send email with shipping information when an order is shipped
-- Send review invitation email when an order is completed
-- Send cancellation notification email when an order is cancelled
+- Send **Confirmation Email** when an **Order** is placed
+- Send **Status Email** when an **Order** is confirmed
+- Send **Shipping Email** with **Shipping Information** when an **Order** is shipped
+- Send **Review Invitation Email** when an **Order** is completed
+- Send **Cancellation Email** when an **Order** is cancelled
 
 ---
 
@@ -79,7 +81,7 @@ MusicShop is an online platform for selling physical media (vinyl, CD, cassette)
 
 ## 2. Music Catalog
 
-The music data store is completely separate from the buying/selling logic. This serves as the foundation for AI functionality and for accurate product information management.
+The **Music Catalog** data store is completely separate from the buying/selling logic. This serves as the foundation for AI functionality and for accurate **Product** information management.
 
 ### 2.1 Data Hierarchy
 
@@ -96,11 +98,11 @@ Artist  ──→  Original Release  ──→  Specific Edition  ──→  Tra
 
 ### 2.2 Why Separate Original Release from Specific Edition
 
-A single original album can have dozens of different editions, each with its own price, condition, and inventory. This hierarchy enables accurate management of each individual pressing without duplicating artistic information.
+A single original **Album** can have dozens of different **Editions**, each with its own **Price**, **Condition**, and **Inventory**. This hierarchy enables accurate management of each individual **Pressing** without duplicating **Artist** information.
 
 ### 2.3 Record Labels
 
-Stores record label information linked to each specific edition: label name, country, founding year, website.
+Stores **Record Label** information linked to each specific **Edition**: **Label Name**, **Country**, **Founding Year**, **Website**.
 
 ---
 
@@ -108,13 +110,13 @@ Stores record label information linked to each specific edition: label name, cou
 
 ### 3.1 Product Types
 
-- Vinyl
-- CD
-- Cassette
+- **Vinyl**
+- **CD**
+- **Cassette**
 
 ### 3.2 Product Variants
 
-Each product can have multiple variants. Each variant has its own independent price and inventory.
+Each **Product** can have multiple **Variants**. Each **Variant** has its own independent **Price** and **Inventory**.
 
 **Vinyl**
 
@@ -148,22 +150,22 @@ Each product can have multiple variants. Each variant has its own independent pr
 **Limited Edition**
 
 - A fixed quantity is determined before sales begin.
-- The limited quantity may not be increased once sales have started.
+- The **Limited Quantity** may not be increased once **Sales** have started.
 
 **Pre-order**
 
-- Customers place orders before the official release date.
-- Inventory is not decremented until the actual release date arrives.
+- **Customers** place **Orders** before the official **Release Date**.
+- **Inventory** is not decremented until the actual **Release Date** arrives.
 
 ### 3.4 Inventory Rules
 
-- Out of stock → automatically marked as unavailable for purchase, hidden from in-stock listings.
-- Products cannot be deleted while there are orders in Pending or Confirmed status.
-- When stock is replenished → the system automatically notifies customers who have that product in their Wantlist.
+- **Out of Stock** → automatically marked as unavailable for purchase, hidden from in-stock listings.
+- **Products** cannot be deleted while there are **Orders** in **Pending** or **Confirmed** status.
+- When **Stock** is replenished → the system automatically notifies **Customers** who have that **Product** in their **Wantlist**.
 
 ### 3.5 Curated Collections
 
-The Admin can create editorially themed collections.
+The **Admin** can create editorially themed **Collections**.
 
 Examples: *Horror Soundtracks*, *Video Game OST*, *Vietnam New Wave*.
 
@@ -181,19 +183,19 @@ Pending → Confirmed → Shipped → Delivered → Completed
 
 | Status | Description |
 |---|---|
-| **Pending** | Customer just placed the order, awaiting confirmation |
-| **Confirmed** | Admin has confirmed the order |
-| **Shipped** | Order has been dispatched |
-| **Delivered** | Order has reached the customer |
-| **Completed** | Fully complete; customer may leave a review |
-| **Cancelled** | Order has been cancelled |
+| **Pending** | **Customer** just placed the **Order**, awaiting confirmation |
+| **Confirmed** | **Admin** has confirmed the **Order** |
+| **Shipped** | **Order** has been dispatched |
+| **Delivered** | **Order** has reached the **Customer** |
+| **Completed** | Fully complete; **Customer** may leave a **Review** |
+| **Cancelled** | **Order** has been cancelled |
 
 ### 4.2 Business Rules
 
-- **Checkout:** inventory is decremented immediately upon successful order placement.
-- **Cancellation at Pending:** full inventory is restored to its previous level.
-- **Cancellation from Confirmed onward:** only the Admin has the authority to do this.
-- **Each order has exactly one payment.**
+- **Checkout:** **Inventory** is decremented immediately upon successful **Order** placement.
+- **Cancellation at Pending:** full **Inventory** is restored to its previous level.
+- **Cancellation from Confirmed onward:** only the **Admin** has the authority to do this.
+- **Each Order has exactly one Payment.**
 
 ---
 
@@ -207,18 +209,20 @@ Pending → Confirmed → Shipped → Delivered → Completed
 
 ### 5.2 Recorded Information
 
-Each payment transaction stores: amount, payment method, transaction ID, timestamp, and status.
+Each **Payment Transaction** stores: **Amount**, **Payment Method**, **Transaction ID**, **Timestamp**, and **Status**.
 
 ---
 
 ## 6. Notifications & Business Events
 
+**Notifications** are sent as application side effects; the current schema does not store **Notification History**.
+
 ### 6.1 Order Lifecycle Notifications
 
 | Event | Notification Action |
 |---|---|
-| Order placed | Send order confirmation email to customer |
-| Order confirmed | Send status update email |
-| Order shipped | Send email with shipping information |
-| Order completed | Send review invitation email to customer |
-| Order cancelled | Send cancellation notification email |
+| **Order** placed | Send **Order Confirmation Email** to **Customer** |
+| **Order** confirmed | Send **Status Update Email** |
+| **Order** shipped | Send **Shipping Email** with **Shipping Information** |
+| **Order** completed | Send **Review Invitation Email** to **Customer** |
+| **Order** cancelled | Send **Cancellation Email** |

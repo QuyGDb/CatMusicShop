@@ -13,6 +13,49 @@
 
 ---
 
+## Candidate Entity Analysis from Overview
+
+Source: `docs/overview.md`. Bold terms in the overview are treated as entity-candidate keywords, then classified into tables, enums/value objects, query concepts, or side effects.
+
+### Accepted Entity Candidates
+
+| Overview candidate keyword | ERD decision | Reason |
+|---|---|---|
+| **User**, **Customer**, **Admin** | `users` table + `role` enum | Customer/Admin are roles of a registered user, not separate tables. |
+| **Artist** | `artists` table | Independently managed catalog entity with biography, country, image, and release relationships. |
+| **Genre** | `genres` table + junction tables | Reused by many artists/releases; needs canonical names and slugs. |
+| **Album**, **Single**, **EP**, **Original Release** | `releases` table | These are release types/semantic categories of the same catalog concept. |
+| **Edition**, **Pressing**, **Specific Edition** | `release_versions` table | Physical releases can have many country/year/label/catalog-number variants. |
+| **Track**, **Tracklist** | `tracks` table | Track ordering and duration belong to a release. |
+| **Record Label**, **Label** | `labels` table | Label data is reused by many release versions. |
+| **Product**, **Physical Media** | `products` table | Sellable SKU with price, stock, availability, preorder/limited flags. |
+| **Vinyl**, **CD**, **Cassette**, **Attributes** | `vinyl_attributes`, `cd_attributes`, `cassette_attributes` | Format-specific attributes differ enough to deserve separate structures. |
+| **Curated Collection**, **Collection** | `curated_collections`, `curated_collection_items` | Admin-managed product groupings with ordering. |
+| **Cart** | `carts`, `cart_items` | Customer shopping state with multiple products and quantities. |
+| **Order** | `orders`, `order_items` | Checkout creates a durable order snapshot and item snapshot. |
+| **Payment**, **Transaction**, **Stripe** | `payments` table | Payment status and external transaction code must be stored for reconciliation. |
+| **Business Events** | `messages` table | Reliable outbox/inbox processing is an infrastructure persistence concern. |
+| **Action Logs** | `admin_activity_logs` table | Admin audit trail is stored separately from business entities. |
+| **Login / Logout**, **Google Auth** | `refresh_tokens` table | Long-lived auth sessions require persisted hashed refresh tokens. |
+
+Note: The detailed sections below focus on storefront/business ERD tables. Support tables such as `refresh_tokens`, `admin_activity_logs`, and `messages` are acknowledged here because the overview implies them, but they are not expanded in the core business ERD section.
+
+### Non-Entity or Deferred Candidates
+
+| Overview candidate keyword | ERD decision | Reason |
+|---|---|---|
+| **Guest** | No table | Guest is an unauthenticated request state, not persisted. |
+| **Role** | Enum/value | Only fixed roles are needed: customer/admin. No role-management feature exists. |
+| **Format**, **Product Type**, **Payment Method**, **Order Status**, **Payment Status** | Enum/value | Closed value sets used for validation and branching. |
+| **Country**, **Price**, **Decade**, **Release Date**, **Stock**, **Inventory** | Fields or derived filters | These describe entities; they are not independent lifecycle objects in this system. |
+| **Catalog**, **Music Catalog** | Module/bounded context | Organizes related entities but does not become a table. |
+| **Revenue Reports** | Query/report model | Revenue is calculated from orders/payments; no separate report table is required. |
+| **Notifications**, **Emails**, **Notification History** | Side effect, no table | Current design sends email from application handlers and does not store notification logs. |
+| **Review** | Deferred candidate | Mentioned in overview, but no current review entity/table exists. Add only if product reviews become an implemented feature. |
+| **Wantlist** | Removed/deferred candidate | Mentioned in inventory rules, but current model has no wantlist table. Reintroduce only if back-in-stock notification becomes a feature. |
+
+---
+
 ## Section 1 — User Roles
 
 **Number of entities: 1**
@@ -46,9 +89,6 @@ created_at    | timestamp
 
 ```
 users ──< orders
-users ──< wantlist_items
-users ──< user_collections
-users ──< curated_collections (created by admin)
 users ──| carts (1-1)
 ```
 
@@ -545,39 +585,6 @@ paid_at          | timestamp nullable -- time of successful payment
 STRIPE:  Create payment (pending) → redirect to Stripe → webhook → success/failed
 ```
 
----
-
-## Section 6 — Notifications & Business Events
-
-**Number of entities: 1**
-
-Email notification is a side effect of business events, not the main flow. A log table is needed to track delivery status.
-
-### `notification_logs` — Notification History
-
-```
-notification_logs
-─────────────────────────────────────────
-id           | uuid     PK
-user_id      | uuid     FK → users.id
-type         | enum               -- order_created | order_confirmed | order_shipped
-                                  -- order_completed | order_cancelled
-reference_id | uuid               -- ID of the related order
-channel      | enum               -- email (can be expanded to push, sms later)
-status       | enum               -- pending | sent | failed
-sent_at      | timestamp nullable
-error_msg    | text     nullable   -- stores reason for failure if any
-created_at   | timestamp
-```
-
-**Explanations:**
-
-- `type` maps to business events: order created, confirmed, shipped, completed, cancelled.
-- `reference_id` links to the related entity — usually `order_id`. No hard FK is created because `reference_id` points to different tables depending on the `type`.
-- `status` + `error_msg` allows for retrying failed emails and debugging errors.
-
----
-
 ## Complete ERD Summary
 
 ### Table List
@@ -604,9 +611,8 @@ created_at   | timestamp
 | 18 | `orders` | 4 | Orders |
 | 19 | `order_items` | 4 | Order Details |
 | 20 | `payments` | 5 | Payments |
-| 21 | `notification_logs` | 6 | Notification History |
 
-**Total: 21 tables**
+**Total: 20 tables**
 
 ---
 
@@ -776,20 +782,6 @@ erDiagram
     timestamp paid_at
   }
 
-
-  %% ─── SECTION 6: NOTIFICATIONS ───
-  notification_logs {
-    uuid id PK
-    uuid user_id FK
-    enum type "order_created | order_confirmed | order_shipped | order_completed | order_cancelled"
-    uuid reference_id
-    enum channel "email"
-    enum status "pending | sent | failed"
-    timestamp sent_at
-    text error_msg
-    timestamp created_at
-  }
-
   %% ─── RELATIONSHIPS ───
   artists ||--o{ artist_genres : "has"
   genres  ||--o{ artist_genres : "belongs to"
@@ -804,7 +796,6 @@ erDiagram
   products ||--o| vinyl_attributes : "attributes"
   products ||--o| cd_attributes : "attributes"
   products ||--o| cassette_attributes : "attributes"
-  users ||--o{ curated_collections : "creates"
   curated_collections ||--o{ curated_collection_items : "contains"
   products ||--o{ curated_collection_items : "belongs to"
 
@@ -817,7 +808,6 @@ erDiagram
   products ||--o{ order_items : "in order"
   orders ||--|| payments : "has"
 
-  users ||--o{ notification_logs : "receives notifications"
 ```
 
 ---

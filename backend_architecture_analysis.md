@@ -37,7 +37,7 @@ Domain/
 │   ├── Shop/        Product, VinylAttributes, CdAttributes, CassetteAttributes, CuratedCollection
 │   ├── Orders/      Cart, CartItem, Order, OrderItem, Payment
 │   ├── Messaging/   Message (Outbox/Inbox)
-│   └── System/      User, RefreshToken, AdminActivityLog, NotificationLog
+│   └── System/      User, RefreshToken, AdminActivityLog
 ├── Enums/           OrderStatus, PaymentStatus, ProductType, ReleaseFormat, UserRole, PaymentGateway
 ├── Errors/          12 domain-specific error classes (ArtistErrors, OrderErrors, etc.)
 └── Interfaces/      IRepository<T>, IUnitOfWork, ITokenService, IPasswordHasher, IRefreshTokenHasher

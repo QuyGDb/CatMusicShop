@@ -11,6 +11,17 @@
 | Datetime | ISO 8601 — `2024-01-15T10:30:00Z` |
 | Naming | **camelCase** for JSON (request/response) |
 
+### Implementation Sync Notes
+
+Synced with current ASP.NET controllers on 2026-05-06.
+
+- `POST /api/v1/orders` creates the order and Stripe checkout data; there is no standalone `POST /api/v1/payments/stripe/create-session` endpoint.
+- `POST /api/v1/payments/stripe/webhook` is the only payment controller endpoint.
+- Product details support both slug and GUID routes: `GET /api/v1/products/{slug}` and `GET /api/v1/products/{id}`. The GUID route is public; there is no `/products/admin/{id}` endpoint.
+- Standalone track search is not implemented; tracks are exposed through release detail responses.
+- Release version detail by ID is not implemented; release versions are listed by release using `GET /api/v1/releaseversions/by-release/{releaseId}`.
+- `POST /api/v1/auth/logout` is a public route that invalidates the `refreshToken` cookie when present.
+
 ### Permissions
 
 | Role | Condition |
@@ -37,24 +48,25 @@
 **Error:**
 ```json
 {
-  "success": false,
-  "error": {
-    "code": "OUT_OF_STOCK",
-    "message": "Product is out of stock"
-  }
+  "type": "https://tools.ietf.org/html/rfc7231#section-6.5.4",
+  "title": "Product.NotFound",
+  "status": 404,
+  "detail": "The product was not found.",
+  "traceId": "..."
 }
 ```
+
+Controller errors use ASP.NET `ProblemDetails` from `BaseApiController.MapError`, not `ApiResponse<T>`.
 
 ### Common Error Codes
 
 | Code | HTTP | Meaning |
 |---|---|---|
-| `UNAUTHORIZED` | 401 | Not logged in |
-| `FORBIDDEN` | 403 | Insufficient permissions |
-| `NOT_FOUND` | 404 | Resource does not exist |
-| `VALIDATION_ERROR` | 422 | Invalid input data |
-| `OUT_OF_STOCK` | 409 | Out of stock |
-| `ORDER_NOT_CANCELLABLE` | 409 | Order cannot be cancelled |
+| `*.Unauthorized` | 401 | Not logged in or invalid credentials |
+| `*.Forbidden` | 403 | Insufficient permissions |
+| `*.NotFound` | 404 | Resource does not exist |
+| `*.Validation` | 400 | Invalid input data |
+| `*.Conflict` | 409 | Business conflict, duplicate value, or invalid state |
 
 ---
 
@@ -75,18 +87,21 @@ Register a new account. Default role is `customer`.
 }
 ```
 
-**Response `201`:**
+**Response `200`:**
 ```json
 {
   "success": true,
   "data": {
-    "userId": "uuid",
-    "email": "user@example.com",
-    "fullName": "John Doe",
-    "role": "customer",
     "accessToken": "jwt_access_token_string",
     "refreshToken": "refresh_token_string",
-    "accessTokenExpiresAt": "2024-01-15T10:15:00Z"
+    "accessTokenExpiresAt": "2024-01-15T10:15:00Z",
+    "user": {
+      "id": "uuid",
+      "email": "user@example.com",
+      "fullName": "John Doe",
+      "role": "Customer",
+      "createdAt": "2024-01-15T10:00:00Z"
+    }
   }
 }
 ```
@@ -127,13 +142,16 @@ Login with email/password.
 {
   "success": true,
   "data": {
-    "userId": "uuid",
-    "email": "user@example.com",
-    "fullName": "John Doe",
-    "role": "customer",
     "accessToken": "jwt_access_token_string",
     "refreshToken": "refresh_token_string",
-    "accessTokenExpiresAt": "2024-01-15T10:15:00Z"
+    "accessTokenExpiresAt": "2024-01-15T10:15:00Z",
+    "user": {
+      "id": "uuid",
+      "email": "user@example.com",
+      "fullName": "John Doe",
+      "role": "Customer",
+      "createdAt": "2024-01-15T10:00:00Z"
+    }
   }
 }
 ```
@@ -156,7 +174,7 @@ Obtain a new Access Token using Refresh Token from cookie.
 
 Invalidate current Refresh Token to log out completely. Clears cookie.
 
-**Auth:** Customer, Admin
+**Auth:** Public route; requires `refreshToken` cookie to invalidate a session.
 
 **Request:** Refresh Token is retrieved from cookie.
 
@@ -178,17 +196,14 @@ Get information of the currently logged-in user.
 {
   "success": true,
   "data": {
-    "userId": "uuid",
+    "id": "uuid",
     "email": "user@example.com",
     "fullName": "John Doe",
-    "role": "customer",
+    "role": "Customer",
     "createdAt": "2024-01-15T10:00:00Z"
   }
 }
 ```
-
----
-
 
 ---
 
@@ -297,7 +312,7 @@ Create a new artist.
 
 ---
 
-### `PUT /api/v1/artists/:id`
+### `PUT /api/v1/artists/{id}`
 
 Update artist information. Uses {id:guid} to identify the resource precisely.
 
@@ -309,7 +324,7 @@ Update artist information. Uses {id:guid} to identify the resource precisely.
 
 ---
 
-### `DELETE /api/v1/artists/:id`
+### `DELETE /api/v1/artists/{id}`
 
 Delete artist (requires {id:guid}). Only possible when no releases are linked.
 
@@ -364,7 +379,7 @@ Create a new genre.
 
 ---
 
-### `PUT /api/v1/genres/:id`
+### `PUT /api/v1/genres/{id}`
 
 Update genre information (uses {id:guid}).
 
@@ -382,7 +397,7 @@ Update genre information (uses {id:guid}).
 
 ---
 
-### `DELETE /api/v1/genres/:id`
+### `DELETE /api/v1/genres/{id}`
 
 Delete genre (uses {id:guid}). Only performed when no Artist or Release is linked.
 
@@ -504,7 +519,7 @@ Create a new release.
 
 ---
 
-### `PUT /api/v1/releases/:id`
+### `PUT /api/v1/releases/{id}`
 
 Update release.
 
@@ -512,9 +527,13 @@ Update release.
 
 ---
 
----
+### `DELETE /api/v1/releases/{id}`
 
----
+Delete release.
+
+**Auth:** Admin
+
+**Response `204`:**
 
 ---
 
@@ -531,30 +550,6 @@ List of pressing versions for a release.
 List of supported formats.
 
 **Auth:** Public
-
----
-
-### `GET /api/v1/releaseversions/{id}`
-
-Pressing details.
-
-**Auth:** Public
-
-**Response `200`:**
-```json
-{
-  "success": true,
-  "data": {
-    "id": "uuid",
-    "pressingCountry": "Japan",
-    "pressingYear": 1976,
-    "format": "vinyl",
-    "catalogNumber": "EMS-80324",
-    "label": { "id": "uuid", "name": "Toshiba EMI" },
-    "notes": "OBI strip"
-  }
-}
-```
 
 ---
 
@@ -654,7 +649,7 @@ Create a new label.
 
 ---
 
-### `PUT /api/v1/labels/:id`
+### `PUT /api/v1/labels/{id}`
 
 Update label (uses {id:guid}).
 
@@ -662,7 +657,7 @@ Update label (uses {id:guid}).
 
 ---
 
-### `DELETE /api/v1/labels/:id`
+### `DELETE /api/v1/labels/{id}`
 
 Delete label (uses {id:guid}). Only performed when no release version is linked.
 
@@ -675,41 +670,7 @@ Delete label (uses {id:guid}). Only performed when no release version is linked.
 
 ---
 
-### `GET /api/v1/tracks`
-
-Search songs across the system.
-
-**Auth:** Public
-
-**Query params:** 
-
-| Param | Type | Description |
-|---|---|---|
-| `q` | string | Search by song title |
-| `page` | int | Page |
-| `limit` | int | Quantity |
-
-**Response `200`:**
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "id": "uuid",
-      "position": 1,
-      "title": "Speak to Me",
-      "durationSeconds": 68,
-      "side": "A",
-      "release": {
-        "id": "uuid",
-        "title": "The Dark Side of the Moon",
-        "artist": { "id": "uuid", "name": "Pink Floyd" }
-      }
-    }
-  ],
-  "meta": { "pageNumber": 1, "pageSize": 20, "maxPage": 1, "totalCount": 1 }
-}
-```
+Standalone track search is not implemented in the current API. Track data is returned through release details.
 
 ---
 
@@ -800,11 +761,11 @@ Product details with release information.
 
 ---
 
-### `GET /api/v1/products/admin/{id}`
+### `GET /api/v1/products/{id}`
 
-Product details for Admin (access via ID).
+Product details by ID. This route is constrained to GUIDs in the controller and shares the same response shape as `GET /api/v1/products/{slug}`.
 
-**Auth:** Admin
+**Auth:** Public
 
 ---
 
@@ -1082,7 +1043,7 @@ Current user's order history.
 
 ---
 
-### `GET /api/v1/orders/:id`
+### `GET /api/v1/orders/{id}`
 
 Order details including order items and payment information.
 
@@ -1168,31 +1129,7 @@ Admin updates order status.
 
 ## Section 6 — Payment
 
-### `POST /api/v1/payments/stripe/create-session`
-
-Create a Stripe Checkout Session for an order in `pending` status. Returns the URL to redirect the user.
-
-**Auth:** Customer
-
-**Request body:**
-```json
-{
-  "orderId": "uuid"
-}
-```
-
-**Response `201`:**
-```json
-{
-  "success": true,
-  "data": {
-    "sessionId": "cs_test_...",
-    "checkoutUrl": "https://checkout.stripe.com/pay/..."
-  }
-}
-```
-
----
+Stripe Checkout Session creation is handled by `POST /api/v1/orders`. There is no standalone `create-session` endpoint in the current API.
 
 ### `POST /api/v1/payments/stripe/webhook`
 
@@ -1247,62 +1184,64 @@ Upload images to the server.
 |---|---|---|---|
 | 1 | POST | `/api/v1/auth/register` | Public |
 | 2 | POST | `/api/v1/auth/login` | Public |
-| 3 | POST | `/api/v1/auth/refresh` | Public |
-| 4 | POST | `/api/v1/auth/logout` | Customer |
-| 5 | GET | `/api/v1/auth/me` | Customer |
-| 6 | GET | `/api/v1/artists` | Public |
-| 7 | GET | `/api/v1/artists/{slug}` | Public |
-| 8 | POST | `/api/v1/artists` | Admin |
-| 9 | PUT | `/api/v1/artists/{id}` | Admin |
-| 10 | DELETE | `/api/v1/artists/{id}` | Admin |
-| 11 | GET | `/api/v1/genres` | Public |
-| 12 | GET | `/api/v1/genres/{slug}` | Public |
-| 13 | POST | `/api/v1/genres` | Admin |
-| 14 | PUT | `/api/v1/genres/{id}` | Admin |
-| 15 | DELETE | `/api/v1/genres/{id}` | Admin |
-| 16 | GET | `/api/v1/releases` | Public |
-| 17 | GET | `/api/v1/releases/{slug}` | Public |
-| 18 | POST | `/api/v1/releases` | Admin |
-| 19 | PUT | `/api/v1/releases/{id}` | Admin |
-| 20 | DELETE | `/api/v1/releases/{id}` | Admin |
-| 21 | GET | `/api/v1/releaseversions/by-release/{releaseId}` | Public |
-| 22 | GET | `/api/v1/releaseversions/formats` | Public |
-| 23 | POST | `/api/v1/releaseversions` | Admin |
-| 24 | PUT | `/api/v1/releaseversions/{id}` | Admin |
-| 25 | DELETE | `/api/v1/releaseversions/{id}` | Admin |
-| 26 | GET | `/api/v1/labels` | Public |
-| 27 | GET | `/api/v1/labels/{slug}` | Public |
-| 28 | POST | `/api/v1/labels` | Admin |
-| 29 | PUT | `/api/v1/labels/{id}` | Admin |
-| 30 | DELETE | `/api/v1/labels/{id}` | Admin |
-| 31 | GET | `/api/v1/products` | Public |
-| 32 | GET | `/api/v1/products/{slug}` | Public |
-| 33 | GET | `/api/v1/products/admin/{id}` | Admin |
-| 34 | POST | `/api/v1/products` | Admin |
-| 35 | PATCH | `/api/v1/products/{id}` | Admin |
-| 36 | DELETE | `/api/v1/products/{id}` | Admin |
-| 37 | GET | `/api/v1/cart` | Customer |
-| 38 | POST | `/api/v1/cart/items` | Customer |
-| 39 | PUT | `/api/v1/cart/items/{id}` | Customer |
-| 40 | DELETE | `/api/v1/cart/items/{id}` | Customer |
-| 41 | DELETE | `/api/v1/cart` | Customer |
-| 42 | GET | `/api/v1/orders` | Customer |
-| 43 | GET | `/api/v1/orders/{id}` | Customer |
-| 44 | POST | `/api/v1/orders` | Customer |
-| 45 | POST | `/api/v1/orders/{id}/cancel` | Customer |
-| 46 | GET | `/api/v1/admin/orders` | Admin |
-| 47 | PATCH | `/api/v1/admin/orders/{id}/status` | Admin |
-| 48 | GET | `/api/v1/curatedcollections` | Public |
-| 49 | GET | `/api/v1/curatedcollections/featured` | Public |
-| 50 | GET | `/api/v1/curatedcollections/{id}` | Public |
-| 51 | POST | `/api/v1/curatedcollections` | Admin |
-| 52 | PATCH | `/api/v1/curatedcollections/{id}` | Admin |
-| 53 | PUT | `/api/v1/curatedcollections/{id}/status` | Admin |
-| 54 | POST | `/api/v1/curatedcollections/{id}/items` | Admin |
-| 55 | DELETE | `/api/v1/curatedcollections/{id}/items/{productId}` | Admin |
-| 56 | DELETE | `/api/v1/curatedcollections/{id}` | Admin |
-| 57 | POST | `/api/v1/payments/stripe/webhook` | Public |
-| 58 | GET | `/api/v1/catalog/search` | Public |
-| 59 | POST | `/api/v1/uploads/image` | Admin |
+| 3 | POST | `/api/v1/auth/google-login` | Public |
+| 4 | POST | `/api/v1/auth/refresh` | Public |
+| 5 | GET | `/api/v1/auth/me` | Authenticated |
+| 6 | POST | `/api/v1/auth/logout` | Public route; refresh cookie required |
+| 7 | POST | `/api/v1/auth/change-password` | Authenticated |
+| 8 | GET | `/api/v1/artists` | Public |
+| 9 | GET | `/api/v1/artists/{slug}` | Public |
+| 10 | POST | `/api/v1/artists` | Admin |
+| 11 | PUT | `/api/v1/artists/{id}` | Admin |
+| 12 | DELETE | `/api/v1/artists/{id}` | Admin |
+| 13 | GET | `/api/v1/genres` | Public |
+| 14 | GET | `/api/v1/genres/{slug}` | Public |
+| 15 | POST | `/api/v1/genres` | Admin |
+| 16 | PUT | `/api/v1/genres/{id}` | Admin |
+| 17 | DELETE | `/api/v1/genres/{id}` | Admin |
+| 18 | GET | `/api/v1/releases` | Public |
+| 19 | GET | `/api/v1/releases/{slug}` | Public |
+| 20 | POST | `/api/v1/releases` | Admin |
+| 21 | PUT | `/api/v1/releases/{id}` | Admin |
+| 22 | DELETE | `/api/v1/releases/{id}` | Admin |
+| 23 | GET | `/api/v1/releaseversions/by-release/{releaseId}` | Public |
+| 24 | GET | `/api/v1/releaseversions/formats` | Public |
+| 25 | POST | `/api/v1/releaseversions` | Admin |
+| 26 | PUT | `/api/v1/releaseversions/{id}` | Admin |
+| 27 | DELETE | `/api/v1/releaseversions/{id}` | Admin |
+| 28 | GET | `/api/v1/labels` | Public |
+| 29 | GET | `/api/v1/labels/{slug}` | Public |
+| 30 | POST | `/api/v1/labels` | Admin |
+| 31 | PUT | `/api/v1/labels/{id}` | Admin |
+| 32 | DELETE | `/api/v1/labels/{id}` | Admin |
+| 33 | GET | `/api/v1/products` | Public |
+| 34 | GET | `/api/v1/products/{slug}` | Public |
+| 35 | GET | `/api/v1/products/{id}` | Public |
+| 36 | POST | `/api/v1/products` | Admin |
+| 37 | PATCH | `/api/v1/products/{id}` | Admin |
+| 38 | DELETE | `/api/v1/products/{id}` | Admin |
+| 39 | GET | `/api/v1/curatedcollections` | Public |
+| 40 | GET | `/api/v1/curatedcollections/featured` | Public |
+| 41 | GET | `/api/v1/curatedcollections/{id}` | Public |
+| 42 | POST | `/api/v1/curatedcollections` | Admin |
+| 43 | PATCH | `/api/v1/curatedcollections/{id}` | Admin |
+| 44 | PUT | `/api/v1/curatedcollections/{id}/status` | Admin |
+| 45 | POST | `/api/v1/curatedcollections/{id}/items` | Admin |
+| 46 | DELETE | `/api/v1/curatedcollections/{id}/items/{productId}` | Admin |
+| 47 | DELETE | `/api/v1/curatedcollections/{id}` | Admin |
+| 48 | GET | `/api/v1/cart` | Authenticated |
+| 49 | POST | `/api/v1/cart/items` | Authenticated |
+| 50 | PUT | `/api/v1/cart/items/{id}` | Authenticated |
+| 51 | DELETE | `/api/v1/cart/items/{id}` | Authenticated |
+| 52 | DELETE | `/api/v1/cart` | Authenticated |
+| 53 | GET | `/api/v1/orders` | Authenticated |
+| 54 | GET | `/api/v1/orders/{id}` | Authenticated |
+| 55 | POST | `/api/v1/orders` | Authenticated |
+| 56 | POST | `/api/v1/orders/{id}/cancel` | Authenticated |
+| 57 | GET | `/api/v1/admin/orders` | Admin |
+| 58 | PATCH | `/api/v1/admin/orders/{id}/status` | Admin |
+| 59 | POST | `/api/v1/payments/stripe/webhook` | Public |
+| 60 | GET | `/api/v1/catalog/search` | Public |
+| 61 | POST | `/api/v1/uploads/image` | Admin |
 
-**Total: 59 endpoints**
+**Total: 61 endpoints**

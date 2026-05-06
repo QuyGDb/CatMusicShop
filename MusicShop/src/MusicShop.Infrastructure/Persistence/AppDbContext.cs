@@ -43,9 +43,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     // 5. Payments
     public DbSet<Payment> Payments => Set<Payment>();
 
-    // 7. Notifications (System)
-    public DbSet<NotificationLog> NotificationLogs => Set<NotificationLog>();
-
     // Legacy/Extra
     public DbSet<AdminActivityLog> AdminActivityLogs => Set<AdminActivityLog>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
