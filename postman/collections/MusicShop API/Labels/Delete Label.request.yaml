@@ -1,5 +1,0 @@
-$kind: http-request
-name: Delete Label
-method: DELETE
-url: '{{baseUrl}}/api/v1/labels/{{labelId}}'
-order: 5000

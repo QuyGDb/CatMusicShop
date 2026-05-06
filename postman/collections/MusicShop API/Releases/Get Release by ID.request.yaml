@@ -1,5 +1,0 @@
-$kind: http-request
-name: Get Release by ID
-method: GET
-url: '{{baseUrl}}/api/v1/releases/{{releaseId}}'
-order: 2000

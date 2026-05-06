@@ -1,25 +1,25 @@
 # CrawlData Scripts
 
-Scripts C# độc lập để xây dựng Seed Data cho cửa hàng âm nhạc. Chạy trực tiếp bằng .NET 10 mà không cần project file.
+Independent C# scripts for building Seed Data for the music shop. These scripts run directly using .NET 10 without requiring a project file.
 
-## Thứ tự chạy (BẮT BUỘC tuần tự)
+## Execution Order (MUST be sequential)
 
 ```
-STEP 1  DiscoverReleases.cs      — Tìm album từ artists.csv → ghi releases.csv
-STEP 2  EnrichRealData.cs        — Lấy Vinyl/CD/Cassette version từ Discogs → ghi release_versions.csv + product.csv
-STEP 3  DownloadTracks.cs        — Lấy tracklist từ Discogs → ghi tracks.csv
-STEP 4  DownloadArtistImages.cs  — Tải ảnh nghệ sĩ → lưu vào local
-STEP 5  DownloadReleaseImages.cs — Tải ảnh bìa album → lưu vào local
-STEP 6  DownloadProductImages.cs — Tải ảnh vật lý (CD/Vinyl) → lưu vào local
-STEP 7  UploadArtistImages.cs    — Upload ảnh nghệ sĩ lên API → cập nhật artists.csv
-STEP 8  UploadReleaseImages.cs   — Upload ảnh album lên API → cập nhật releases.csv
-STEP 9  UploadProductImages.cs   — Upload ảnh đĩa lên API → cập nhật product.csv
+STEP 1  DiscoverReleases.cs      — Find albums from artists.csv → write to releases.csv
+STEP 2  EnrichRealData.cs        — Fetch Vinyl/CD/Cassette versions from Discogs → write to release_versions.csv + product.csv
+STEP 3  DownloadTracks.cs        — Fetch tracklists from Discogs → write to tracks.csv
+STEP 4  DownloadArtistImages.cs  — Download artist images → save locally
+STEP 5  DownloadReleaseImages.cs — Download album cover images → save locally
+STEP 6  DownloadProductImages.cs — Download physical product images (CD/Vinyl) → save locally
+STEP 7  UploadArtistImages.cs    — Upload artist images to API → update artists.csv
+STEP 8  UploadReleaseImages.cs   — Upload album images to API → update releases.csv
+STEP 9  UploadProductImages.cs   — Upload product images to API → update product.csv
 ```
 
-### Chạy từ thư mục CrawlData
+### Run from the CrawlData directory
 
 ```powershell
-cd "d:\Pine tree\MusicShop\CrawlData"
+cd "d:\CatMusicShop\CrawlData"
 
 dotnet DiscoverReleases.cs
 dotnet EnrichRealData.cs
@@ -28,18 +28,18 @@ dotnet DownloadArtistImages.cs
 dotnet DownloadReleaseImages.cs
 dotnet DownloadProductImages.cs
 
-# Lưu ý: API (MusicShop.API) phải đang chạy để thực hiện các bước upload
+# Note: The API (MusicShop.API) must be running to perform the upload steps
 dotnet UploadArtistImages.cs
 dotnet UploadReleaseImages.cs
 dotnet UploadProductImages.cs
 ```
 
-> **Lưu ý**: Các script được thiết kế để chạy lại nhiều lần mà không bị trùng dữ liệu (idempotent).  
-> Script sau phụ thuộc vào output của script trước — **không được đảo thứ tự**.
+> **Note**: These scripts are designed to be idempotent and can be run multiple times without duplicating data.  
+> Each script depends on the output of the previous one — **do not change the order**.
 
 ---
 
-## Luồng dữ liệu
+## Data Flow
 
 ```
 artists.csv
@@ -57,7 +57,7 @@ Updated CSVs with ImageUrl (CloudFront)
 
 ---
 
-## Mô tả từng script
+## Script Descriptions
 
 | Script | API | Input | Output |
 |--------|-----|-------|--------|

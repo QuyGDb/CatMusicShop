@@ -1,5 +1,0 @@
-$kind: http-request
-name: Get Label by ID
-method: GET
-url: '{{baseUrl}}/api/v1/labels/{{labelId}}'
-order: 2000

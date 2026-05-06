@@ -3,8 +3,9 @@
 A full-stack e-commerce platform for selling physical music media — **Vinyl**, **CD**, and **Cassette**. Built with Clean Architecture principles, featuring a rich music catalog, Stripe payments, and an interactive 3D storefront.
 
 > **Live:** [catmusicshop.duckdns.org](https://catmusicshop.duckdns.org)
-<br/>
-![CatMusicShop Showcase](./overview.gif)
+<p align="center">
+  <img src="overview.gif" alt="CatMusicShop Showcase" width="100%" />
+</p>
 
 ---
 
@@ -59,7 +60,7 @@ A full-stack e-commerce platform for selling physical music media — **Vinyl**,
 | Containerization | Docker + Docker Compose |
 | Reverse Proxy | Nginx + Let's Encrypt SSL |
 | Hosting | AWS EC2 |
-| CI/CD | GitHub Actions |
+
 
 ---
 
@@ -79,18 +80,6 @@ MusicShop/
 └── docker-compose.prod.yml
 ```
 
-### Domain Modules
-
-| Module | Entities |
-|---|---|
-| **Catalog** | Artist, Genre, Release, ReleaseVersion, Label, Track |
-| **Shop** | Product, VinylAttributes, CdAttributes, CassetteAttributes, CuratedCollection |
-| **Orders** | Cart, CartItem, Order, OrderItem |
-| **Payments** | Payment |
-| **Messaging** | OutboxMessage (reliable event delivery) |
-| **Auth** | User, RefreshToken |
-
----
 
 ## Features
 
@@ -217,25 +206,7 @@ npm run dev
 
 ---
 
-## API Endpoints
 
-| Resource | Methods | Auth |
-|---|---|---|
-| `/api/v1/auth` | Register, Login, Google, Refresh, Logout | Public / Authenticated |
-| `/api/v1/artists` | CRUD | Public (read) / Admin (write) |
-| `/api/v1/genres` | CRUD | Public (read) / Admin (write) |
-| `/api/v1/labels` | CRUD | Public (read) / Admin (write) |
-| `/api/v1/releases` | CRUD | Public (read) / Admin (write) |
-| `/api/v1/release-versions` | CRUD | Public (read) / Admin (write) |
-| `/api/v1/products` | CRUD + Search + Filter | Public (read) / Admin (write) |
-| `/api/v1/curated-collections` | CRUD | Public (read) / Admin (write) |
-| `/api/v1/cart` | Get, Add, Update, Remove, Clear | Customer |
-| `/api/v1/orders` | Place, List, Details, Cancel, Update Status | Customer / Admin |
-| `/api/v1/payments` | Create Checkout Session, Webhook | Customer / Stripe |
-| `/api/v1/uploads` | Upload Image | Admin |
-| `/api/v1/catalog` | Aggregated Search | Public |
-
----
 
 ## License
 

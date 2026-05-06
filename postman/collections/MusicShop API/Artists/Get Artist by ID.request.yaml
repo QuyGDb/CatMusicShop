@@ -1,5 +1,0 @@
-$kind: http-request
-name: Get Artist by ID
-method: GET
-url: '{{baseUrl}}/api/v1/artists/{{artistId}}'
-order: 2000
