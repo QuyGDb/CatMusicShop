@@ -1,73 +1,35 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { createCrudHooks } from '@/shared/hooks/createCrudHooks';
 import { releaseService, CreateReleaseRequest, UpdateReleaseRequest } from '../services/releaseService';
+import { Release } from '../types';
 import { toast } from 'sonner';
 
-export function useReleases(page = 1, limit = 10, search?: string) {
-  return useQuery({
-    queryKey: ['releases', { page, limit, search }],
-    queryFn: () => releaseService.getReleases(page, limit, search),
-  });
-}
+// Standard CRUD hooks via factory
+const releaseHooks = createCrudHooks<Release, CreateReleaseRequest, UpdateReleaseRequest>({
+  queryKey: 'releases',
+  service: {
+    getAll: releaseService.getReleases,
+    getBySlug: releaseService.getReleaseBySlug,
+    create: releaseService.createRelease,
+    update: releaseService.updateRelease,
+    delete: releaseService.deleteRelease,
+  },
+  entityName: 'Release',
+});
+
+export const useReleases = releaseHooks.useList;
+export const useRelease = releaseHooks.useDetail;
+export const useCreateRelease = releaseHooks.useCreate;
+export const useUpdateRelease = releaseHooks.useUpdate;
+export const useDeleteRelease = releaseHooks.useDelete;
+
+// Release-specific hooks that don't fit the generic pattern
 
 export function useReleaseFormats() {
   return useQuery({
     queryKey: ['releases', 'formats'],
     queryFn: () => releaseService.getReleaseFormats(),
     staleTime: Infinity,
-  });
-}
-
-export function useRelease(slug: string) {
-  return useQuery({
-    queryKey: ['releases', slug],
-    queryFn: () => releaseService.getReleaseBySlug(slug),
-    enabled: !!slug,
-  });
-}
-
-export function useCreateRelease() {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: (data: CreateReleaseRequest) => releaseService.createRelease(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['releases'] });
-      toast.success('Release created successfully');
-    },
-    onError: (error: any) => {
-      toast.error(error.message || 'Failed to create release');
-    }
-  });
-}
-
-export function useUpdateRelease() {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: ({ id, data }: { id: string, data: UpdateReleaseRequest }) => 
-      releaseService.updateRelease(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['releases'] });
-      toast.success('Release updated successfully');
-    },
-    onError: (error: any) => {
-      toast.error(error.message || 'Failed to update release');
-    }
-  });
-}
-
-export function useDeleteRelease() {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: (id: string) => releaseService.deleteRelease(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['releases'] });
-      toast.success('Release deleted successfully');
-    },
-    onError: (error: any) => {
-      toast.error(error.message || 'Failed to delete release');
-    }
   });
 }
 
@@ -89,14 +51,14 @@ export function useReleaseVersions(releaseId: string) {
 
 export function useCreateReleaseVersion() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (data: any) => releaseService.createReleaseVersion(data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['releases', variables.releaseId, 'versions'] });
       toast.success('Version added to release');
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || 'Failed to add version');
     }
   });
@@ -104,14 +66,14 @@ export function useCreateReleaseVersion() {
 
 export function useUpdateReleaseVersion() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: ({ id, data }: { id: string, data: any }) => releaseService.updateReleaseVersion(id, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['releases', variables.data.releaseId, 'versions'] });
       toast.success('Version updated');
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || 'Failed to update version');
     }
   });
@@ -119,14 +81,14 @@ export function useUpdateReleaseVersion() {
 
 export function useDeleteReleaseVersion() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: ({ id, releaseId }: { id: string, releaseId: string }) => releaseService.deleteReleaseVersion(id),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['releases', variables.releaseId, 'versions'] });
       toast.success('Version removed');
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || 'Failed to remove version');
     }
   });

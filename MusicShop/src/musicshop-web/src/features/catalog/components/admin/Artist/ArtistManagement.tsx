@@ -7,7 +7,7 @@ import { useArtistManagement } from '../../../hooks/useArtistManagement';
 
 export function ArtistManagement() {
   const {
-    artists,
+    items: artists,
     isLoading,
     error,
     isEmpty,
@@ -46,7 +46,7 @@ export function ArtistManagement() {
     >
       {form.isOpen && (
         <ArtistForm
-          editingArtist={form.editingArtist}
+          editingArtist={form.editingEntity}
           onClose={form.close}
         />
       )}

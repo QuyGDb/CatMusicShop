@@ -1,56 +1,20 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { createCrudHooks } from '@/shared/hooks/createCrudHooks';
 import { genreService, CreateGenreRequest, UpdateGenreRequest } from '../services/genreService';
-import { toast } from 'sonner';
+import { Genre } from '../types';
 
-export function useGenres(page = 1, limit = 50, search?: string) {
-  return useQuery({
-    queryKey: ['genres', { page, limit, search }],
-    queryFn: () => genreService.getGenres(page, limit, search),
-  });
-}
+const genreHooks = createCrudHooks<Genre, CreateGenreRequest, UpdateGenreRequest>({
+  queryKey: 'genres',
+  service: {
+    getAll: genreService.getGenres,
+    getBySlug: genreService.getGenreBySlug,
+    create: genreService.createGenre,
+    update: genreService.updateGenre,
+    delete: genreService.deleteGenre,
+  },
+  entityName: 'Genre',
+});
 
-export function useCreateGenre() {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: (data: CreateGenreRequest) => genreService.createGenre(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['genres'] });
-      toast.success('Genre created successfully');
-    },
-    onError: (error: any) => {
-      toast.error(error.message || 'Failed to create genre');
-    }
-  });
-}
-
-export function useUpdateGenre() {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: ({ id, data }: { id: string, data: UpdateGenreRequest }) => 
-      genreService.updateGenre(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['genres'] });
-      toast.success('Genre updated successfully');
-    },
-    onError: (error: any) => {
-      toast.error(error.message || 'Failed to update genre');
-    }
-  });
-}
-
-export function useDeleteGenre() {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: (id: string) => genreService.deleteGenre(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['genres'] });
-      toast.success('Genre deleted successfully');
-    },
-    onError: (error: any) => {
-      toast.error(error.message || 'Failed to delete genre');
-    }
-  });
-}
+export const useGenres = genreHooks.useList;
+export const useCreateGenre = genreHooks.useCreate;
+export const useUpdateGenre = genreHooks.useUpdate;
+export const useDeleteGenre = genreHooks.useDelete;

@@ -20,7 +20,7 @@ const GENRE_COLORS = [
  */
 export function GenreManagement() {
   const {
-    genres,
+    items: genres,
     isLoading,
     isEmpty,
     error,
@@ -64,7 +64,7 @@ export function GenreManagement() {
     >
       {form.isOpen && (
         <GenreForm
-          editingGenre={form.editingGenre}
+          editingGenre={form.editingEntity}
           onClose={form.close}
         />
       )}

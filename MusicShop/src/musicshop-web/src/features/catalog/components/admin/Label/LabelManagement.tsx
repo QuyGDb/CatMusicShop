@@ -10,7 +10,7 @@ import { useLabelManagement } from '../../../hooks/useLabelManagement';
  */
 export function LabelManagement() {
   const {
-    labels,
+    items: labels,
     isLoading,
     isEmpty,
     error,
@@ -49,7 +49,7 @@ export function LabelManagement() {
     >
       {form.isOpen && (
         <LabelForm 
-          editingLabel={form.editingLabel} 
+          editingLabel={form.editingEntity} 
           onClose={form.close} 
         />
       )}

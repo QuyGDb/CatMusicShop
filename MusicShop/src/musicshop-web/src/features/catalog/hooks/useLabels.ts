@@ -1,56 +1,20 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { createCrudHooks } from '@/shared/hooks/createCrudHooks';
 import { labelService, CreateLabelRequest, UpdateLabelRequest } from '../services/labelService';
-import { toast } from 'sonner';
+import { Label } from '../types';
 
-export function useLabels(page = 1, limit = 10, search?: string) {
-  return useQuery({
-    queryKey: ['labels', { page, limit, search }],
-    queryFn: () => labelService.getLabels(page, limit, search),
-  });
-}
+const labelHooks = createCrudHooks<Label, CreateLabelRequest, UpdateLabelRequest>({
+  queryKey: 'labels',
+  service: {
+    getAll: labelService.getLabels,
+    getBySlug: labelService.getLabelBySlug,
+    create: labelService.createLabel,
+    update: labelService.updateLabel,
+    delete: labelService.deleteLabel,
+  },
+  entityName: 'Label',
+});
 
-export function useCreateLabel() {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: (data: CreateLabelRequest) => labelService.createLabel(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['labels'] });
-      toast.success('Label created successfully');
-    },
-    onError: (error: any) => {
-      toast.error(error.message || 'Failed to create label');
-    }
-  });
-}
-
-export function useUpdateLabel() {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: ({ id, data }: { id: string, data: UpdateLabelRequest }) => 
-      labelService.updateLabel(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['labels'] });
-      toast.success('Label updated successfully');
-    },
-    onError: (error: any) => {
-      toast.error(error.message || 'Failed to update label');
-    }
-  });
-}
-
-export function useDeleteLabel() {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: (id: string) => labelService.deleteLabel(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['labels'] });
-      toast.success('Label deleted successfully');
-    },
-    onError: (error: any) => {
-      toast.error(error.message || 'Failed to delete label');
-    }
-  });
-}
+export const useLabels = labelHooks.useList;
+export const useCreateLabel = labelHooks.useCreate;
+export const useUpdateLabel = labelHooks.useUpdate;
+export const useDeleteLabel = labelHooks.useDelete;
