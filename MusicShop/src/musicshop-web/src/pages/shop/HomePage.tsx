@@ -1,27 +1,13 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { useAuthStore } from '@/store/useAuthStore';
-import { buttonVariants } from '@/shared/components';
-import { ShoppingBag } from 'lucide-react';
-import { cn } from '@/shared/lib/utils';
 import { FeaturedCollections } from '@/features/curation/components/storefront/FeaturedCollections';
 import { MusicHeroScene } from '@/features/threejs';
 
 export default function HomePage() {
-  const accessToken = useAuthStore((state) => state.accessToken);
-  const user = useAuthStore((state) => state.user);
-  const isAuthenticated = !!accessToken;
-
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Immersive 3D Hero Section */}
       <div className="flex flex-col lg:flex-row w-full h-[60vh] lg:h-screen overflow-hidden bg-[#09090b]">
-
-        {/* Main Column: 3D Scene */}
         <div className="flex-1 h-[60vh] lg:h-full relative">
           <MusicHeroScene />
         </div>
-
         <div className="hidden lg:block w-[380px] h-full border-l border-white/5 bg-black">
           <iframe 
             title="Spotify Playlist"
@@ -36,8 +22,6 @@ export default function HomePage() {
           ></iframe>
         </div>
       </div>
-
-      {/* Featured Collections Section */}
       <div className="container mx-auto px-4 pb-32">
         <FeaturedCollections />
       </div>
