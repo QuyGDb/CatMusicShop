@@ -1,13 +1,14 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { cartService } from '../services/cartService';
 import { AddToCartRequest, UpdateCartItemRequest } from '../types';
+import { cartKeys } from '../queryKeys';
 import { toast } from 'sonner';
 
 export function useCartMutations() {
   const queryClient = useQueryClient();
 
   const handleSuccess = () => {
-    queryClient.invalidateQueries({ queryKey: ['cart'] });
+    queryClient.invalidateQueries({ queryKey: cartKeys.all });
   };
 
   const handleError = (error: any) => {

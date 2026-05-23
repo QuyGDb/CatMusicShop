@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { productService, ProductFilters } from '../services/productService';
+import { productKeys } from '../queryKeys';
 import { useProductFilters } from './useProductFilters';
 import { toast } from 'sonner';
 
@@ -21,7 +22,7 @@ export function useProductsList() {
   };
 
   const { data, isLoading: loading, error } = useQuery({
-    queryKey: ['products', filters],
+    queryKey: productKeys.list(filters),
     queryFn: () => productService.getProducts(filters),
   });
 
@@ -37,14 +38,14 @@ export function useProductsList() {
 
 export function useProducts(filters: ProductFilters) {
   return useQuery({
-    queryKey: ['products', filters],
+    queryKey: productKeys.list(filters),
     queryFn: () => productService.getProducts(filters),
   });
 }
 
 export function useProduct(slug: string) {
   return useQuery({
-    queryKey: ['products', slug],
+    queryKey: productKeys.detail(slug),
     queryFn: () => productService.getProductBySlug(slug),
     enabled: !!slug,
   });
@@ -52,7 +53,7 @@ export function useProduct(slug: string) {
 
 export function useProductId(id: string) {
   return useQuery({
-    queryKey: ['products', 'id', id],
+    queryKey: productKeys.byId(id),
     queryFn: () => productService.getProductById(id),
     enabled: !!id,
   });
@@ -60,7 +61,7 @@ export function useProductId(id: string) {
 
 export function useAdminProduct(id: string) {
   return useQuery({
-    queryKey: ['products', 'admin', id],
+    queryKey: productKeys.admin(id),
     queryFn: () => productService.getProductById(id),
     enabled: !!id,
   });
@@ -72,7 +73,7 @@ export function useCreateProduct() {
   return useMutation({
     mutationFn: (data: unknown) => productService.createProduct(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: productKeys.all });
       toast.success('Product created successfully');
     },
     onError: (error: Error) => {
@@ -88,7 +89,7 @@ export function useUpdateProduct() {
     mutationFn: ({ id, data }: { id: string, data: unknown }) =>
       productService.updateProduct(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: productKeys.all });
       toast.success('Product updated successfully');
     },
     onError: (error: Error) => {
@@ -103,7 +104,7 @@ export function useDeleteProduct() {
   return useMutation({
     mutationFn: (id: string) => productService.deleteProduct(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: productKeys.all });
       toast.success('Product deleted successfully');
     },
     onError: (error: Error) => {

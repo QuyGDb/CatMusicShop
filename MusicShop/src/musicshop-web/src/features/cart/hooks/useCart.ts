@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { cartService } from '../services/cartService';
+import { cartKeys } from '../queryKeys';
 import { useAuthStore } from '@/store/useAuthStore';
 
 export function useCart() {
@@ -8,7 +9,7 @@ export function useCart() {
   const isCustomer = isAuthenticated && user?.role?.toLowerCase() !== 'admin';
 
   const { data: cart, isLoading, error } = useQuery({
-    queryKey: ['cart'],
+    queryKey: cartKeys.all,
     queryFn: () => cartService.getCart(),
     enabled: isCustomer,
     retry: 1,

@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { ShoppingBag, Clock, Truck, AlertCircle, CheckCircle2, XCircle } from 'lucide-react';
 import { OrderListItem, OrderStatus } from '../types';
 import { orderService } from '../services/orderService';
+import { orderKeys } from '../queryKeys';
 
 const statusStyles: Record<OrderStatus, { color: string, icon: any }> = {
   [OrderStatus.Pending]: { color: 'bg-amber-100 text-amber-700 border-amber-200', icon: Clock },
@@ -21,15 +22,15 @@ export function useOrderManagement() {
   const queryClient = useQueryClient();
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['admin', 'orders', statusFilter],
+    queryKey: orderKeys.admin.list(statusFilter),
     queryFn: () => orderService.getAdminOrders({ status: statusFilter, page: 1, limit: 50 }),
   });
 
   const cancelMutation = useMutation({
     mutationFn: (orderId: string) => orderService.updateOrderStatus(orderId, 'Cancelled'),
     onSuccess: (_, orderId) => {
-      queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] });
-      queryClient.invalidateQueries({ queryKey: ['orders', 'detail', orderId] });
+      queryClient.invalidateQueries({ queryKey: orderKeys.admin.all });
+      queryClient.invalidateQueries({ queryKey: orderKeys.detail(orderId) });
       toast.success('Order cancelled successfully');
     },
     onError: (err: any) => {

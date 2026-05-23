@@ -5,6 +5,7 @@ import { OrderStatus } from '../types';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { orderService } from '../services/orderService';
 import { toast } from 'sonner';
+import { orderKeys } from '../queryKeys';
 
 const orderStatusSchema = z.object({
   status: z.enum(['Pending', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled']),
@@ -49,8 +50,8 @@ export function useOrderForm({ orderId, initialStatus, onSuccess }: UseOrderForm
     mutationFn: (values: OrderFormValues) => 
       orderService.updateOrderStatus(orderId, values.status, values.trackingNumber),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] });
-      queryClient.invalidateQueries({ queryKey: ['orders', 'detail', orderId] });
+      queryClient.invalidateQueries({ queryKey: orderKeys.admin.all });
+      queryClient.invalidateQueries({ queryKey: orderKeys.detail(orderId) });
       toast.success('Order status updated successfully');
       onSuccess();
     },

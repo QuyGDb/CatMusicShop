@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { checkoutService } from '../services/checkoutService';
 import { CreateOrderRequest } from '../types';
+import { cartKeys } from '@/features/cart/queryKeys';
 import { toast } from 'sonner';
 
 export function useCheckout() {
@@ -10,7 +11,7 @@ export function useCheckout() {
     mutationFn: (request: CreateOrderRequest) => checkoutService.createOrder(request),
     onSuccess: (data) => {
       // Clear cart locally since backend clears it
-      queryClient.setQueryData(['cart'], null);
+      queryClient.setQueryData(cartKeys.all, null);
       
       // Redirect to Stripe checkout
       if (data.payment.checkoutUrl) {

@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createCrudHooks } from '@/shared/hooks/createCrudHooks';
 import { releaseService, CreateReleaseRequest, UpdateReleaseRequest, CreateReleaseVersionRequest, UpdateReleaseVersionRequest } from '../services/releaseService';
 import { Release } from '../types';
+import { catalogKeys } from '../queryKeys';
 import { toast } from 'sonner';
 
 // Standard CRUD hooks via factory
@@ -27,7 +28,7 @@ export const useDeleteRelease = releaseHooks.useDelete;
 
 export function useReleaseFormats() {
   return useQuery({
-    queryKey: ['releases', 'formats'],
+    queryKey: catalogKeys.releases.formats(),
     queryFn: () => releaseService.getReleaseFormats(),
     staleTime: Infinity,
   });
@@ -35,7 +36,7 @@ export function useReleaseFormats() {
 
 export function useReleaseTracks(releaseId: string) {
   return useQuery({
-    queryKey: ['releases', releaseId, 'tracks'],
+    queryKey: catalogKeys.releases.tracks(releaseId),
     queryFn: () => releaseService.getReleaseTracks(releaseId),
     enabled: !!releaseId,
   });
@@ -43,7 +44,7 @@ export function useReleaseTracks(releaseId: string) {
 
 export function useReleaseVersions(releaseId: string) {
   return useQuery({
-    queryKey: ['releases', releaseId, 'versions'],
+    queryKey: catalogKeys.releases.versions(releaseId),
     queryFn: () => releaseService.getReleaseVersions(releaseId),
     enabled: !!releaseId,
   });
@@ -55,7 +56,7 @@ export function useCreateReleaseVersion() {
   return useMutation({
     mutationFn: (data: CreateReleaseVersionRequest) => releaseService.createReleaseVersion(data),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['releases', variables.releaseId, 'versions'] });
+      queryClient.invalidateQueries({ queryKey: catalogKeys.releases.versions(variables.releaseId) });
       toast.success('Version added to release');
     },
     onError: (error: Error) => {
@@ -70,7 +71,7 @@ export function useUpdateReleaseVersion() {
   return useMutation({
     mutationFn: ({ id, data }: { id: string, data: UpdateReleaseVersionRequest }) => releaseService.updateReleaseVersion(id, data),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['releases', variables.data.releaseId, 'versions'] });
+      queryClient.invalidateQueries({ queryKey: catalogKeys.releases.versions(variables.data.releaseId) });
       toast.success('Version updated');
     },
     onError: (error: Error) => {
@@ -85,7 +86,7 @@ export function useDeleteReleaseVersion() {
   return useMutation({
     mutationFn: ({ id, releaseId }: { id: string, releaseId: string }) => releaseService.deleteReleaseVersion(id),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['releases', variables.releaseId, 'versions'] });
+      queryClient.invalidateQueries({ queryKey: catalogKeys.releases.versions(variables.releaseId) });
       toast.success('Version removed');
     },
     onError: (error: Error) => {

@@ -3,6 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { curationSchema, CurationFormValues, CurationItem } from '../types/curation';
 
 import { curationService } from '../services/curationService';
+import { curationKeys } from '../queryKeys';
 import { toast } from 'sonner';
 
 interface UseCurationFormProps {
@@ -115,7 +116,7 @@ export function useCurationForm({ collectionId, onSuccess }: UseCurationFormProp
         }
       }
 
-      queryClient.invalidateQueries({ queryKey: ['curated-collections'] });
+      queryClient.invalidateQueries({ queryKey: curationKeys.all });
       toast.success(collectionId ? 'Collection updated successfully' : 'Collection created successfully');
       onSuccess();
     } catch (error: any) {

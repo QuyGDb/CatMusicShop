@@ -3,13 +3,14 @@ import { orderService } from '../services/orderService';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/useAuthStore';
+import { orderKeys } from '../queryKeys';
 
 export function useOrderDetail(orderId: string) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
   const { data: order, isLoading, error } = useQuery({
-    queryKey: ['orders', 'detail', orderId],
+    queryKey: orderKeys.detail(orderId),
     queryFn: () => orderService.getOrderDetail(orderId),
     enabled: !!orderId,
   });
@@ -22,9 +23,9 @@ export function useOrderDetail(orderId: string) {
       ? orderService.updateOrderStatus(orderId, 'Cancelled')
       : orderService.cancelOrder(orderId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
-      queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] });
-      queryClient.invalidateQueries({ queryKey: ['orders', 'detail', orderId] });
+      queryClient.invalidateQueries({ queryKey: orderKeys.all });
+      queryClient.invalidateQueries({ queryKey: orderKeys.admin.all });
+      queryClient.invalidateQueries({ queryKey: orderKeys.detail(orderId) });
       toast.success('Order cancelled successfully');
     },
     onError: (err: any) => {

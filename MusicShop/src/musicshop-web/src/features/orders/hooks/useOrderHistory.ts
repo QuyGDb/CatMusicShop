@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { orderService, OrderHistoryFilters } from '../services/orderService';
 import { OrderStatus } from '../types';
+import { orderKeys } from '../queryKeys';
 
 export function useOrderHistory() {
   const [page, setPage] = useState(1);
@@ -14,7 +15,7 @@ export function useOrderHistory() {
   };
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['orders', 'history', filters],
+    queryKey: orderKeys.history(filters),
     queryFn: () => orderService.getOrderHistory(filters),
   });
 
