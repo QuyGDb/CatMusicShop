@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createCrudHooks } from '@/shared/hooks/createCrudHooks';
-import { releaseService, CreateReleaseRequest, UpdateReleaseRequest } from '../services/releaseService';
+import { releaseService, CreateReleaseRequest, UpdateReleaseRequest, CreateReleaseVersionRequest, UpdateReleaseVersionRequest } from '../services/releaseService';
 import { Release } from '../types';
 import { toast } from 'sonner';
 
@@ -53,7 +53,7 @@ export function useCreateReleaseVersion() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: any) => releaseService.createReleaseVersion(data),
+    mutationFn: (data: CreateReleaseVersionRequest) => releaseService.createReleaseVersion(data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['releases', variables.releaseId, 'versions'] });
       toast.success('Version added to release');
@@ -68,7 +68,7 @@ export function useUpdateReleaseVersion() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string, data: any }) => releaseService.updateReleaseVersion(id, data),
+    mutationFn: ({ id, data }: { id: string, data: UpdateReleaseVersionRequest }) => releaseService.updateReleaseVersion(id, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['releases', variables.data.releaseId, 'versions'] });
       toast.success('Version updated');

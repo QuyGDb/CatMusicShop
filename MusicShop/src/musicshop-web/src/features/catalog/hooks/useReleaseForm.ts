@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
-import { useForm, useFieldArray, UseFormRegister, Control, FieldErrors } from 'react-hook-form';
+import { useForm, useFieldArray, UseFormRegister, Control, FieldErrors, FieldArrayWithId, Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useCreateRelease, useUpdateRelease } from '@/features/catalog/hooks/useReleases';
 import { useGenres } from '@/features/catalog/hooks/useGenres';
 import { Release } from '@/features/catalog/types';
-import { releaseSchema, ReleaseFormValues } from '../types/release';
+import { releaseSchema, ReleaseFormValues, TrackValues } from '../types/release';
+import { CreateReleaseRequest } from '../services/releaseService';
+import { PaginatedResponse } from '@/shared/types/api';
+import { Genre } from '@/features/catalog/types';
 import { uploadService } from '@/shared/services/uploadService';
 import { slugify } from '@/shared/lib/utils';
 
@@ -26,8 +29,8 @@ interface UseReleaseFormReturn {
   handleTitleChange: (title: string) => void;
   toggleGenre: (genreId: string) => void;
   isPending: boolean;
-  fields: any[];
-  genresData: any;
+  fields: FieldArrayWithId<ReleaseFormValues, 'tracks', 'id'>[];
+  genresData: PaginatedResponse<Genre> | undefined;
   loadingGenres: boolean;
 }
 export function useReleaseForm({ editingRelease, onSuccess }: UseReleaseFormProps): UseReleaseFormReturn {
@@ -45,7 +48,7 @@ export function useReleaseForm({ editingRelease, onSuccess }: UseReleaseFormProp
     reset,
     formState: { errors, isSubmitting }
   } = useForm<ReleaseFormValues>({
-    resolver: zodResolver(releaseSchema) as any,
+    resolver: zodResolver(releaseSchema) as Resolver<ReleaseFormValues>,
 
     defaultValues: {
       title: editingRelease?.title ?? '',
@@ -99,7 +102,7 @@ export function useReleaseForm({ editingRelease, onSuccess }: UseReleaseFormProp
         finalCoverUrl = await uploadService.uploadImage(value.coverUrl, 'releases');
       }
 
-      const payload: any = {
+      const payload: CreateReleaseRequest = {
         title: value.title,
         slug: value.slug || slugify(value.title),
         year: value.year,
@@ -116,14 +119,15 @@ export function useReleaseForm({ editingRelease, onSuccess }: UseReleaseFormProp
       };
       if (editingRelease) {
         await updateReleaseMutation.mutateAsync(
-          { id: editingRelease.id, data: payload as any }
+          { id: editingRelease.id, data: payload }
         );
       } else {
-        await createReleaseMutation.mutateAsync(payload as any);
+        await createReleaseMutation.mutateAsync(payload);
       }
       onSuccess();
-    } catch (error: any) {
-      console.error(' [useReleaseForm] Submission error:', error);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Submission failed';
+      console.error(' [useReleaseForm] Submission error:', message);
     }
   };
 
@@ -155,7 +159,7 @@ export function useReleaseForm({ editingRelease, onSuccess }: UseReleaseFormProp
   return {
     register,
     control,
-    handleSubmit: handleSubmit(onSubmit) as any,
+    handleSubmit: handleSubmit(onSubmit),
     errors,
     step,
     setStep,

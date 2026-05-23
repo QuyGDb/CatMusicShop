@@ -37,14 +37,14 @@ export function useArtistForm({ editingArtist, onSuccess }: UseArtistFormProps):
     getValues,
     formState: { errors, isSubmitting }
   } = useForm<ArtistFormValues>({
-    resolver: zodResolver(artistSchema) as any,
+    resolver: zodResolver(artistSchema),
     defaultValues: {
       name: editingArtist?.name ?? '',
       slug: editingArtist?.slug ?? '',
       country: editingArtist?.country ?? '',
       bio: editingArtist?.bio ?? '',
       imageUrl: editingArtist?.imageUrl ?? '',
-      genreIds: editingArtist?.genres.map((genre: any) => genre.id) ?? [],
+      genreIds: editingArtist?.genres.map((genre) => genre.id) ?? [],
     }
   });
 
@@ -70,8 +70,9 @@ export function useArtistForm({ editingArtist, onSuccess }: UseArtistFormProps):
       }
 
       onSuccess();
-    } catch (error: any) {
-      toast.error(error.message)
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to save artist';
+      toast.error(message)
     }
   };
 
@@ -93,7 +94,7 @@ export function useArtistForm({ editingArtist, onSuccess }: UseArtistFormProps):
   return {
     register,
     control,
-    handleSubmit: handleSubmit(onSubmit) as any,
+    handleSubmit: handleSubmit(onSubmit),
     errors,
     handleNameChange,
     toggleGenre,

@@ -45,7 +45,7 @@ export function useLoginForm(): UseLoginFormReturn {
     handleSubmit,
     formState: { errors, isSubmitting }
   } = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema) as any,
+    resolver: zodResolver(loginSchema),
 
     defaultValues: {
       email: '',
@@ -73,7 +73,7 @@ export function useLoginForm(): UseLoginFormReturn {
 
   return {
     register,
-    handleSubmit: handleSubmit(onSubmit) as any,
+    handleSubmit: handleSubmit(onSubmit),
     errors,
     isSubmitting: isSubmitting || loginMutation.isPending || googleLoginMutation.isPending,
     serverError,

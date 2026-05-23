@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, type ElementRef } from 'react';
 import * as THREE from 'three';
 import { Canvas } from '@react-three/fiber';
 import { Sky, OrbitControls, Environment, SpotLight, PerspectiveCamera } from '@react-three/drei';
@@ -11,8 +11,8 @@ import { ArtistFloatingImages } from './ArtistFloatingImages';
 
 export function MusicHeroScene() {
   const { fontUrl, heroText, models } = useMusicHeroScene();
-  const cameraRef = useRef<any>(null);
-  const controlsRef = useRef<any>(null);
+  const cameraRef = useRef<THREE.PerspectiveCamera>(null);
+  const controlsRef = useRef<ElementRef<typeof OrbitControls>>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isMobile, setIsMobile] = React.useState(false);
 

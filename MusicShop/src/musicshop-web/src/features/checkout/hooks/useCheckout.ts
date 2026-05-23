@@ -19,7 +19,7 @@ export function useCheckout() {
         toast.error('Failed to get checkout URL');
       }
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || 'Failed to create order');
     },
   });

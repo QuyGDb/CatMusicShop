@@ -21,7 +21,7 @@ export function useCollections() {
       queryClient.invalidateQueries({ queryKey: ['curated-collections'] });
       toast.success(isPublished ? 'Collection published' : 'Collection moved to drafts');
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || 'Failed to update status');
     }
   });
@@ -32,7 +32,7 @@ export function useCollections() {
       queryClient.invalidateQueries({ queryKey: ['curated-collections'] });
       toast.success('Collection deleted successfully');
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || 'Failed to delete collection');
     }
   });

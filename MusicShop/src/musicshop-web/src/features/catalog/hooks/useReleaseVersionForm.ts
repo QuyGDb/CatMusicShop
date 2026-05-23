@@ -2,12 +2,13 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useCreateReleaseVersion, useUpdateReleaseVersion } from '@/features/catalog/hooks/useReleases';
 import { releaseVersionSchema, ReleaseVersionFormValues } from '../types/release';
+import { ReleaseVersion } from '../types';
 import { ReleaseFormat } from '@/features/products/types';
 import { useEffect } from 'react';
 
 interface UseReleaseVersionFormProps {
   releaseId: string;
-  editingVersion?: any | null;
+  editingVersion?: ReleaseVersion | null;
   onSuccess: () => void;
 }
 
