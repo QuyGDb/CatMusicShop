@@ -13,7 +13,7 @@ public sealed class ReleaseRepository(AppDbContext context) : GenericRepository<
         GetReleasesQuery request,
         CancellationToken ct = default)
     {
-        IQueryable<Release> query = _context.Set<Release>()
+        IQueryable<Release> query = _dbSet
             .Include(release => release.Artist)
             .Include(release => release.ReleaseGenres)
                 .ThenInclude(releaseGenre => releaseGenre.Genre)
@@ -60,7 +60,7 @@ public sealed class ReleaseRepository(AppDbContext context) : GenericRepository<
 
     public async Task<Release?> GetWithDetailsAsync(Guid id, bool track = false, CancellationToken ct = default)
     {
-        IQueryable<Release> query = _context.Set<Release>()
+        IQueryable<Release> query = _dbSet
             .Include(release => release.Artist)
             .Include(release => release.ReleaseGenres)
                 .ThenInclude(releaseGenre => releaseGenre.Genre)
@@ -81,7 +81,7 @@ public sealed class ReleaseRepository(AppDbContext context) : GenericRepository<
 
     public async Task<Release?> GetBySlugWithDetailsAsync(string slug, bool track = false, CancellationToken ct = default)
     {
-        IQueryable<Release> query = _context.Set<Release>()
+        IQueryable<Release> query = _dbSet
             .Include(release => release.Artist)
             .Include(release => release.ReleaseGenres)
                 .ThenInclude(releaseGenre => releaseGenre.Genre)
@@ -102,7 +102,7 @@ public sealed class ReleaseRepository(AppDbContext context) : GenericRepository<
 
     public async Task<List<Release>> SearchByTitleAsync(string searchTerm, int limit, CancellationToken ct = default)
     {
-        return await _context.Set<Release>()
+        return await _dbSet
             .Include(r => r.Artist)
             .Include(r => r.ReleaseGenres)
                 .ThenInclude(rg => rg.Genre)

@@ -9,7 +9,7 @@ public sealed class ReleaseVersionRepository(AppDbContext context) : GenericRepo
 {
     public async Task<List<ReleaseVersion>> GetByReleaseIdWithLabelAsync(Guid releaseId, CancellationToken ct = default)
     {
-        return await _context.Set<ReleaseVersion>()
+        return await _dbSet
             .Include(releaseVersion => releaseVersion.Label)
             .Where(releaseVersion => releaseVersion.ReleaseId == releaseId)
             .AsNoTracking()

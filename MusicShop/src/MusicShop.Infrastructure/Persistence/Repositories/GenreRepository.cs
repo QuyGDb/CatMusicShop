@@ -12,7 +12,7 @@ public sealed class GenreRepository(AppDbContext context) : GenericRepository<Ge
         GetGenresQuery request,
         CancellationToken ct = default)
     {
-        IQueryable<Genre> query = _context.Set<Genre>().AsNoTracking();
+        IQueryable<Genre> query = _dbSet.AsNoTracking();
 
         if (!string.IsNullOrWhiteSpace(request.Q))
         {
@@ -32,14 +32,14 @@ public sealed class GenreRepository(AppDbContext context) : GenericRepository<Ge
 
     public async Task<Genre?> GetBySlugAsync(string slug, CancellationToken ct = default)
     {
-        return await _context.Set<Genre>()
+        return await _dbSet
             .AsNoTracking()
             .FirstOrDefaultAsync(genre => genre.Slug == slug, ct);
     }
 
     public async Task<Genre?> GetWithAssociationsAsync(Guid id, CancellationToken ct = default)
     {
-        return await _context.Set<Genre>()
+        return await _dbSet
             .Include(genre => genre.ArtistGenres)
             .Include(genre => genre.ReleaseGenres)
             .FirstOrDefaultAsync(genre => genre.Id == id, ct);
@@ -47,7 +47,7 @@ public sealed class GenreRepository(AppDbContext context) : GenericRepository<Ge
 
     public async Task<Genre?> GetWithAssociationsBySlugAsync(string slug, CancellationToken ct = default)
     {
-        return await _context.Set<Genre>()
+        return await _dbSet
             .Include(genre => genre.ArtistGenres)
             .Include(genre => genre.ReleaseGenres)
             .FirstOrDefaultAsync(genre => genre.Slug == slug, ct);

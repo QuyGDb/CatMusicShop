@@ -10,7 +10,7 @@ public sealed class ArtistRepository(AppDbContext context) : GenericRepository<A
 {
     public async Task<Artist?> GetWithGenresAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await _context.Set<Artist>()
+        return await _dbSet
             .Include(artist => artist.ArtistGenres)
                 .ThenInclude(artistGenre => artistGenre.Genre)
             .FirstOrDefaultAsync(artist => artist.Id == id, cancellationToken);
@@ -18,7 +18,7 @@ public sealed class ArtistRepository(AppDbContext context) : GenericRepository<A
 
     public async Task<Artist?> GetWithGenresBySlugAsync(string slug, CancellationToken cancellationToken = default)
     {
-        return await _context.Set<Artist>()
+        return await _dbSet
             .Include(artist => artist.ArtistGenres)
                 .ThenInclude(artistGenre => artistGenre.Genre)
             .FirstOrDefaultAsync(artist => artist.Slug == slug, cancellationToken);
@@ -26,7 +26,7 @@ public sealed class ArtistRepository(AppDbContext context) : GenericRepository<A
 
     public async Task<Artist?> GetWithReleasesAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await _context.Set<Artist>()
+        return await _dbSet
             .Include(artist => artist.Releases)
             .Include(artist => artist.ArtistGenres)
             .FirstOrDefaultAsync(artist => artist.Id == id, cancellationToken);
@@ -34,7 +34,7 @@ public sealed class ArtistRepository(AppDbContext context) : GenericRepository<A
 
     public async Task<Artist?> GetWithReleasesBySlugAsync(string slug, CancellationToken cancellationToken = default)
     {
-        return await _context.Set<Artist>()
+        return await _dbSet
             .Include(artist => artist.Releases)
             .FirstOrDefaultAsync(artist => artist.Slug == slug, cancellationToken);
     }
@@ -43,7 +43,7 @@ public sealed class ArtistRepository(AppDbContext context) : GenericRepository<A
         GetArtistsQuery request,
         CancellationToken cancellationToken = default)
     {
-        IQueryable<Artist> query = _context.Set<Artist>()
+        IQueryable<Artist> query = _dbSet
             .Include(artist => artist.ArtistGenres)
                 .ThenInclude(artistGenre => artistGenre.Genre)
             .AsNoTracking();
@@ -73,7 +73,7 @@ public sealed class ArtistRepository(AppDbContext context) : GenericRepository<A
 
     public async Task<List<Artist>> SearchByNameAsync(string searchTerm, int limit, CancellationToken ct = default)
     {
-        return await _context.Set<Artist>()
+        return await _dbSet
             .Include(artist => artist.ArtistGenres)
                 .ThenInclude(artistGenre => artistGenre.Genre)
             .Where(artist => EF.Functions.ILike(artist.Name, $"%{searchTerm}%"))

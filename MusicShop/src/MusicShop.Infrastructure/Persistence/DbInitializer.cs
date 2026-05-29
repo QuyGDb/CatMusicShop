@@ -20,7 +20,7 @@ public static class DbInitializer
         await context.Database.MigrateAsync();
 
         // 1. Seed Admin
-        if (!await context.Users.AnyAsync(u => u.Role == UserRole.Admin))
+        if (!await context.Set<User>().AnyAsync(u => u.Role == UserRole.Admin))
         {
             User adminUser = new User
             {
@@ -32,12 +32,12 @@ public static class DbInitializer
             };
 
 
-            await context.Users.AddAsync(adminUser);
+            await context.Set<User>().AddAsync(adminUser);
             await context.SaveChangesAsync();
         }
 
         // 2. Seed Genres
-        if (!await context.Genres.AnyAsync())
+        if (!await context.Set<Genre>().AnyAsync())
         {
             var assembly = Assembly.GetExecutingAssembly();
             var resourceName = "MusicShop.Infrastructure.Persistence.SeedData.genres.csv";
@@ -63,12 +63,12 @@ public static class DbInitializer
                 });
             }
 
-            await context.Genres.AddRangeAsync(genres);
+            await context.Set<Genre>().AddRangeAsync(genres);
             await context.SaveChangesAsync();
         }
 
         // 3. Seed Artists
-        if (!await context.Artists.AnyAsync())
+        if (!await context.Set<Artist>().AnyAsync())
         {
             var assembly = Assembly.GetExecutingAssembly();
             var resourceName = "MusicShop.Infrastructure.Persistence.SeedData.artists.csv";
@@ -118,13 +118,13 @@ public static class DbInitializer
                 artists.Add(artist);
             }
 
-            await context.Artists.AddRangeAsync(artists);
+            await context.Set<Artist>().AddRangeAsync(artists);
         }
 
         await context.SaveChangesAsync();
 
         // 4. Seed Labels
-        if (!await context.Labels.AnyAsync())
+        if (!await context.Set<Label>().AnyAsync())
         {
             var assembly = Assembly.GetExecutingAssembly();
             var resourceName = "MusicShop.Infrastructure.Persistence.SeedData.labels.csv";
@@ -406,7 +406,7 @@ public static class DbInitializer
                 MissingFieldFound = null
             });
 
-            var records = csv.GetRecords<dynamic>();
+            dynamic records = csv.GetRecords<dynamic>();
             List<CuratedCollection> collections = new();
 
             foreach (var record in records)
