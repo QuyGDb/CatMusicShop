@@ -8,6 +8,9 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using MusicShop.API.Middleware;
 using MusicShop.Domain.Interfaces;
+using MusicShop.Domain.Entities.Catalog;
+using MusicShop.Domain.Entities.Shop;
+using MusicShop.Domain.Entities.System;
 using MusicShop.Infrastructure.Persistence;
 using MusicShop.Infrastructure.Messaging;
 using Hangfire;
@@ -155,16 +158,38 @@ using (IServiceScope scope = app.Services.CreateScope())
     IServiceProvider services = scope.ServiceProvider;
     try
     {
-        AppDbContext context = services.GetRequiredService<AppDbContext>();
-        IPasswordHasher passwordHasher = services.GetRequiredService<IPasswordHasher>();
         ILogger<Program> logger = services.GetRequiredService<ILogger<Program>>();
         
+        IRepository<User> userRepository = services.GetRequiredService<IRepository<User>>();
+        IRepository<Genre> genreRepository = services.GetRequiredService<IRepository<Genre>>();
+        IRepository<Artist> artistRepository = services.GetRequiredService<IRepository<Artist>>();
+        IRepository<Label> labelRepository = services.GetRequiredService<IRepository<Label>>();
+        IRepository<Release> releaseRepository = services.GetRequiredService<IRepository<Release>>();
+        IRepository<Track> trackRepository = services.GetRequiredService<IRepository<Track>>();
+        IRepository<ReleaseVersion> releaseVersionRepository = services.GetRequiredService<IRepository<ReleaseVersion>>();
+        IRepository<Product> productRepository = services.GetRequiredService<IRepository<Product>>();
+        IRepository<CuratedCollection> curatedCollectionRepository = services.GetRequiredService<IRepository<CuratedCollection>>();
+        IRepository<CuratedCollectionItem> curatedCollectionItemRepository = services.GetRequiredService<IRepository<CuratedCollectionItem>>();
+        
+        AppDbContext context = services.GetRequiredService<AppDbContext>();
+        IPasswordHasher passwordHasher = services.GetRequiredService<IPasswordHasher>();
         AdminSettings adminSettings = services.GetRequiredService<Microsoft.Extensions.Options.IOptions<AdminSettings>>().Value;
 
-
         logger.LogInformation("Checking database for seeding...");
-        await DbInitializer.SeedAsync(context, passwordHasher, adminSettings);
-
+        await DbInitializer.SeedAsync(
+            userRepository,
+            genreRepository,
+            artistRepository,
+            labelRepository,
+            releaseRepository,
+            trackRepository,
+            releaseVersionRepository,
+            productRepository,
+            curatedCollectionRepository,
+            curatedCollectionItemRepository,
+            context,
+            passwordHasher,
+            adminSettings);
 
         logger.LogInformation("Database initialization complete.");
     }
@@ -177,4 +202,3 @@ using (IServiceScope scope = app.Services.CreateScope())
 
 app.Run();
 
-public partial class Program { }

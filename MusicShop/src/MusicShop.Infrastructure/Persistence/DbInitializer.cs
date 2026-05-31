@@ -10,17 +10,29 @@ using System.Globalization;
 using System.Reflection;
 using MusicShop.Infrastructure.Security;
 
-
 namespace MusicShop.Infrastructure.Persistence;
 
 public static class DbInitializer
 {
-    public static async Task SeedAsync(AppDbContext context, IPasswordHasher passwordHasher, AdminSettings adminSettings)
+    public static async Task SeedAsync(
+        IRepository<User> userRepository,
+        IRepository<Genre> genreRepository,
+        IRepository<Artist> artistRepository,
+        IRepository<Label> labelRepository,
+        IRepository<Release> releaseRepository,
+        IRepository<Track> trackRepository,
+        IRepository<ReleaseVersion> releaseVersionRepository,
+        IRepository<Product> productRepository,
+        IRepository<CuratedCollection> curatedCollectionRepository,
+        IRepository<CuratedCollectionItem> curatedCollectionItemRepository,
+        AppDbContext context,
+        IPasswordHasher passwordHasher,
+        AdminSettings adminSettings)
     {
         await context.Database.MigrateAsync();
 
         // 1. Seed Admin
-        if (!await context.Set<User>().AnyAsync(u => u.Role == UserRole.Admin))
+        if (!await userRepository.AnyAsync(user => user.Role == UserRole.Admin))
         {
             User adminUser = new User
             {
@@ -31,30 +43,29 @@ public static class DbInitializer
                 IdentityProvider = "Local"
             };
 
-
-            await context.Set<User>().AddAsync(adminUser);
+            userRepository.Add(adminUser);
             await context.SaveChangesAsync();
         }
 
         // 2. Seed Genres
-        if (!await context.Set<Genre>().AnyAsync())
+        if (!await genreRepository.AnyAsync(genre => true))
         {
-            var assembly = Assembly.GetExecutingAssembly();
-            var resourceName = "MusicShop.Infrastructure.Persistence.SeedData.genres.csv";
+            Assembly assembly = Assembly.GetExecutingAssembly();
+            string resourceName = "MusicShop.Infrastructure.Persistence.SeedData.genres.csv";
 
-            using var stream = assembly.GetManifestResourceStream(resourceName);
+            using Stream? stream = assembly.GetManifestResourceStream(resourceName);
             if (stream == null) throw new FileNotFoundException("Seed data file not found", resourceName);
 
-            using var reader = new StreamReader(stream);
-            using var csv = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture)
+            using StreamReader reader = new StreamReader(stream);
+            using CsvReader csv = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture)
             {
                 HasHeaderRecord = true
             });
 
-            var records = csv.GetRecords<dynamic>();
-            List<Genre> genres = new();
+            IEnumerable<dynamic> records = csv.GetRecords<dynamic>();
+            List<Genre> genres = new List<Genre>();
 
-            foreach (var record in records)
+            foreach (dynamic record in records)
             {
                 genres.Add(new Genre
                 {
@@ -63,34 +74,37 @@ public static class DbInitializer
                 });
             }
 
-            await context.Set<Genre>().AddRangeAsync(genres);
+            foreach (Genre genre in genres)
+            {
+                genreRepository.Add(genre);
+            }
             await context.SaveChangesAsync();
         }
 
         // 3. Seed Artists
-        if (!await context.Set<Artist>().AnyAsync())
+        if (!await artistRepository.AnyAsync(artist => true))
         {
-            var assembly = Assembly.GetExecutingAssembly();
-            var resourceName = "MusicShop.Infrastructure.Persistence.SeedData.artists.csv";
+            Assembly assembly = Assembly.GetExecutingAssembly();
+            string resourceName = "MusicShop.Infrastructure.Persistence.SeedData.artists.csv";
 
-            using var stream = assembly.GetManifestResourceStream(resourceName);
+            using Stream? stream = assembly.GetManifestResourceStream(resourceName);
             if (stream == null) throw new FileNotFoundException("Seed data file not found", resourceName);
 
-            using var reader = new StreamReader(stream);
-            using var csv = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture)
+            using StreamReader reader = new StreamReader(stream);
+            using CsvReader csv = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture)
             {
                 HasHeaderRecord = true,
                 MissingFieldFound = null
             });
 
-            var records = csv.GetRecords<dynamic>();
-            var genresMap = await context.Genres.ToDictionaryAsync(g => g.Name);
+            IEnumerable<dynamic> records = csv.GetRecords<dynamic>();
+            Dictionary<string, Genre> genresMap = await context.Genres.ToDictionaryAsync(genre => genre.Name);
 
-            List<Artist> artists = new();
+            List<Artist> artists = new List<Artist>();
 
-            foreach (var record in records)
+            foreach (dynamic record in records)
             {
-                var artist = new Artist
+                Artist artist = new Artist
                 {
                     Name = record.Name,
                     Bio = record.Bio,
@@ -101,12 +115,12 @@ public static class DbInitializer
 
                 // Link genres via navigation property
                 string genresStr = record.Genres ?? string.Empty;
-                var artistGenreNames = genresStr.Split(',', StringSplitOptions.RemoveEmptyEntries)
-                                              .Select(g => g.Trim());
+                IEnumerable<string> artistGenreNames = genresStr.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                              .Select(genreName => genreName.Trim());
 
-                foreach (var genreName in artistGenreNames)
+                foreach (string genreName in artistGenreNames)
                 {
-                    if (genresMap.TryGetValue(genreName, out var genre))
+                    if (genresMap.TryGetValue(genreName, out Genre? genre))
                     {
                         artist.ArtistGenres.Add(new ArtistGenre
                         {
@@ -118,31 +132,34 @@ public static class DbInitializer
                 artists.Add(artist);
             }
 
-            await context.Set<Artist>().AddRangeAsync(artists);
+            foreach (Artist artist in artists)
+            {
+                artistRepository.Add(artist);
+            }
         }
 
         await context.SaveChangesAsync();
 
         // 4. Seed Labels
-        if (!await context.Set<Label>().AnyAsync())
+        if (!await labelRepository.AnyAsync(label => true))
         {
-            var assembly = Assembly.GetExecutingAssembly();
-            var resourceName = "MusicShop.Infrastructure.Persistence.SeedData.labels.csv";
+            Assembly assembly = Assembly.GetExecutingAssembly();
+            string resourceName = "MusicShop.Infrastructure.Persistence.SeedData.labels.csv";
 
-            using var stream = assembly.GetManifestResourceStream(resourceName);
+            using Stream? stream = assembly.GetManifestResourceStream(resourceName);
             if (stream == null) throw new FileNotFoundException("Seed data file not found", resourceName);
 
-            using var reader = new StreamReader(stream);
-            using var csv = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture)
+            using StreamReader reader = new StreamReader(stream);
+            using CsvReader csv = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture)
             {
                 HasHeaderRecord = true,
                 MissingFieldFound = null
             });
 
-            var records = csv.GetRecords<dynamic>();
-            List<Label> labels = new();
+            IEnumerable<dynamic> records = csv.GetRecords<dynamic>();
+            List<Label> labels = new List<Label>();
 
-            foreach (var record in records)
+            foreach (dynamic record in records)
             {
                 labels.Add(new Label
                 {
@@ -154,34 +171,37 @@ public static class DbInitializer
                 });
             }
 
-            await context.Labels.AddRangeAsync(labels);
+            foreach (Label label in labels)
+            {
+                labelRepository.Add(label);
+            }
         }
 
         await context.SaveChangesAsync();
 
         // 5. Seed Releases
-        if (!await context.Releases.AnyAsync())
+        if (!await releaseRepository.AnyAsync(release => true))
         {
             Assembly assembly = Assembly.GetExecutingAssembly();
             string resourceName = "MusicShop.Infrastructure.Persistence.SeedData.releases.csv";
 
-            using var stream = assembly.GetManifestResourceStream(resourceName);
+            using Stream? stream = assembly.GetManifestResourceStream(resourceName);
             if (stream == null) throw new FileNotFoundException("Seed data file not found", resourceName);
 
-            using var reader = new StreamReader(stream);
-            using var csv = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture)
+            using StreamReader reader = new StreamReader(stream);
+            using CsvReader csv = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture)
             {
                 HasHeaderRecord = true,
                 MissingFieldFound = null
             });
 
             List<dynamic> records = csv.GetRecords<dynamic>().ToList();
-            Dictionary<string, Artist> artistsMap = await context.Artists.ToDictionaryAsync(a => a.Name);
-            Dictionary<string, Genre> genresMap = await context.Genres.ToDictionaryAsync(g => g.Name);
+            Dictionary<string, Artist> artistsMap = await context.Artists.ToDictionaryAsync(artist => artist.Name);
+            Dictionary<string, Genre> genresMap = await context.Genres.ToDictionaryAsync(genre => genre.Name);
 
-            List<Release> releases = new();
+            List<Release> releases = new List<Release>();
 
-            foreach (var record in records)
+            foreach (dynamic record in records)
             {
                 string artistName = record.ArtistName ?? string.Empty;
                 if (!artistsMap.TryGetValue(artistName, out Artist? artist)) continue;
@@ -199,9 +219,9 @@ public static class DbInitializer
                 // Link genres via navigation property
                 string genresStr = record.Genres ?? string.Empty;
                 IEnumerable<string> releaseGenreNames = genresStr.Split(',', StringSplitOptions.RemoveEmptyEntries)
-                                                 .Select(g => g.Trim());
+                                                 .Select(genreName => genreName.Trim());
 
-                foreach (var genreName in releaseGenreNames)
+                foreach (string genreName in releaseGenreNames)
                 {
                     if (genresMap.TryGetValue(genreName, out Genre? genre))
                     {
@@ -215,13 +235,16 @@ public static class DbInitializer
                 releases.Add(release);
             }
 
-            await context.Releases.AddRangeAsync(releases);
+            foreach (Release release in releases)
+            {
+                releaseRepository.Add(release);
+            }
             await context.SaveChangesAsync();
             Console.WriteLine($"[Seed] Successfully seeded {releases.Count} releases.");
         }
 
         // 6. Seed Tracks
-        if (!await context.Tracks.AnyAsync())
+        if (!await trackRepository.AnyAsync(track => true))
         {
             Assembly assembly = Assembly.GetExecutingAssembly();
             string resourceName = "MusicShop.Infrastructure.Persistence.SeedData.tracks.csv";
@@ -239,7 +262,7 @@ public static class DbInitializer
             List<dynamic> records = csv.GetRecords<dynamic>().ToList();
             Dictionary<string, Release> releasesMap = await context.Releases.ToDictionaryAsync(release => release.Title);
 
-            List<Track> tracks = new();
+            List<Track> tracks = new List<Track>();
 
             foreach (dynamic record in records)
             {
@@ -256,34 +279,37 @@ public static class DbInitializer
                 });
             }
 
-            await context.Tracks.AddRangeAsync(tracks);
+            foreach (Track track in tracks)
+            {
+                trackRepository.Add(track);
+            }
             await context.SaveChangesAsync();
             Console.WriteLine($"[Seed] Successfully seeded {tracks.Count} tracks.");
         }
 
         // 7. Seed ReleaseVersions
-        if (!await context.ReleaseVersions.AnyAsync())
+        if (!await releaseVersionRepository.AnyAsync(version => true))
         {
             Assembly assembly = Assembly.GetExecutingAssembly();
             string resourceName = "MusicShop.Infrastructure.Persistence.SeedData.release_versions.csv";
 
-            using var stream = assembly.GetManifestResourceStream(resourceName);
+            using Stream? stream = assembly.GetManifestResourceStream(resourceName);
             if (stream == null) throw new FileNotFoundException("Seed data file not found", resourceName);
 
-            using var reader = new StreamReader(stream);
-            using var csv = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture)
+            using StreamReader reader = new StreamReader(stream);
+            using CsvReader csv = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture)
             {
                 HasHeaderRecord = true,
                 MissingFieldFound = null
             });
 
             List<dynamic> records = csv.GetRecords<dynamic>().ToList();
-            Dictionary<string, Release> releasesMap = await context.Releases.ToDictionaryAsync(r => r.Title);
-            Dictionary<string, Label> labelsMap = await context.Labels.ToDictionaryAsync(l => l.Name);
+            Dictionary<string, Release> releasesMap = await context.Releases.ToDictionaryAsync(release => release.Title);
+            Dictionary<string, Label> labelsMap = await context.Labels.ToDictionaryAsync(label => label.Name);
 
-            List<ReleaseVersion> versions = new();
+            List<ReleaseVersion> versions = new List<ReleaseVersion>();
 
-            foreach (var record in records)
+            foreach (dynamic record in records)
             {
                 string releaseTitle = record.ReleaseTitle ?? string.Empty;
                 string labelName = record.LabelName ?? string.Empty;
@@ -306,7 +332,7 @@ public static class DbInitializer
                             .Replace("&", "and")
                             .Trim('-')
                     };
-                    await context.Labels.AddAsync(label);
+                    labelRepository.Add(label);
                     await context.SaveChangesAsync();
                     labelsMap[labelName] = label;
                 }
@@ -324,22 +350,25 @@ public static class DbInitializer
                 });
             }
 
-            await context.ReleaseVersions.AddRangeAsync(versions);
+            foreach (ReleaseVersion version in versions)
+            {
+                releaseVersionRepository.Add(version);
+            }
         }
 
         await context.SaveChangesAsync();
 
         // 8. Seed Products
-        if (!await context.Products.AnyAsync())
+        if (!await productRepository.AnyAsync(product => true))
         {
             Assembly assembly = Assembly.GetExecutingAssembly();
             string resourceName = "MusicShop.Infrastructure.Persistence.SeedData.product.csv";
 
-            using var stream = assembly.GetManifestResourceStream(resourceName);
+            using Stream? stream = assembly.GetManifestResourceStream(resourceName);
             if (stream == null) throw new FileNotFoundException("Seed data file not found", resourceName);
 
-            using var reader = new StreamReader(stream);
-            using var csv = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture)
+            using StreamReader reader = new StreamReader(stream);
+            using CsvReader csv = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture)
             {
                 HasHeaderRecord = true,
                 MissingFieldFound = null
@@ -347,14 +376,14 @@ public static class DbInitializer
 
             List<dynamic> records = csv.GetRecords<dynamic>().ToList();
             List<ReleaseVersion> versions = await context.ReleaseVersions
-                .Include(v => v.Release)
+                .Include(version => version.Release)
                 .ToListAsync();
             
-            Dictionary<string, ReleaseVersion> versionsMap = versions.ToDictionary(v => $"{v.Release.Title}|{v.Name}");
+            Dictionary<string, ReleaseVersion> versionsMap = versions.ToDictionary(version => $"{version.Release.Title}|{version.Name}");
 
-            List<Product> products = new();
+            List<Product> products = new List<Product>();
 
-            foreach (var record in records)
+            foreach (dynamic record in records)
             {
                 string releaseTitle = record.ReleaseTitle?.ToString() ?? string.Empty;
                 string versionName = record.VersionName?.ToString() ?? string.Empty;
@@ -385,31 +414,34 @@ public static class DbInitializer
                 });
             }
 
-            await context.Products.AddRangeAsync(products);
+            foreach (Product product in products)
+            {
+                productRepository.Add(product);
+            }
             await context.SaveChangesAsync();
             Console.WriteLine($"[Seed] Successfully seeded {products.Count} products.");
         }
 
         // 9. Seed CuratedCollections
-        if (!await context.CuratedCollections.AnyAsync())
+        if (!await curatedCollectionRepository.AnyAsync(collection => true))
         {
-            var assembly = Assembly.GetExecutingAssembly();
-            var resourceName = "MusicShop.Infrastructure.Persistence.SeedData.curateCollection.csv";
+            Assembly assembly = Assembly.GetExecutingAssembly();
+            string resourceName = "MusicShop.Infrastructure.Persistence.SeedData.curateCollection.csv";
 
-            using var stream = assembly.GetManifestResourceStream(resourceName);
+            using Stream? stream = assembly.GetManifestResourceStream(resourceName);
             if (stream == null) throw new FileNotFoundException("Seed data file not found", resourceName);
 
-            using var reader = new StreamReader(stream);
-            using var csv = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture)
+            using StreamReader reader = new StreamReader(stream);
+            using CsvReader csv = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture)
             {
                 HasHeaderRecord = true,
                 MissingFieldFound = null
             });
 
-            dynamic records = csv.GetRecords<dynamic>();
-            List<CuratedCollection> collections = new();
+            IEnumerable<dynamic> records = csv.GetRecords<dynamic>();
+            List<CuratedCollection> collections = new List<CuratedCollection>();
 
-            foreach (var record in records)
+            foreach (dynamic record in records)
             {
                 collections.Add(new CuratedCollection
                 {
@@ -419,40 +451,43 @@ public static class DbInitializer
                 });
             }
 
-            await context.CuratedCollections.AddRangeAsync(collections);
+            foreach (CuratedCollection collection in collections)
+            {
+                curatedCollectionRepository.Add(collection);
+            }
             await context.SaveChangesAsync();
             Console.WriteLine($"[Seed] Successfully seeded {collections.Count} curated collections.");
         }
 
         // 10. Seed CuratedCollectionItems
-        if (!await context.Set<CuratedCollectionItem>().AnyAsync())
+        if (!await curatedCollectionItemRepository.AnyAsync(item => true))
         {
-            var assembly = Assembly.GetExecutingAssembly();
-            var resourceName = "MusicShop.Infrastructure.Persistence.SeedData.curateCollectionItem.csv";
+            Assembly assembly = Assembly.GetExecutingAssembly();
+            string resourceName = "MusicShop.Infrastructure.Persistence.SeedData.curateCollectionItem.csv";
 
-            using var stream = assembly.GetManifestResourceStream(resourceName);
+            using Stream? stream = assembly.GetManifestResourceStream(resourceName);
             if (stream == null) throw new FileNotFoundException("Seed data file not found", resourceName);
 
-            using var reader = new StreamReader(stream);
-            using var csv = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture)
+            using StreamReader reader = new StreamReader(stream);
+            using CsvReader csv = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture)
             {
                 HasHeaderRecord = true,
                 MissingFieldFound = null
             });
 
-            var records = csv.GetRecords<dynamic>();
-            var collectionsMap = await context.CuratedCollections.ToDictionaryAsync(c => c.Title);
-            var productsMap = await context.Products.ToDictionaryAsync(p => p.Name);
+            IEnumerable<dynamic> records = csv.GetRecords<dynamic>();
+            Dictionary<string, CuratedCollection> collectionsMap = await context.CuratedCollections.ToDictionaryAsync(collection => collection.Title);
+            Dictionary<string, Product> productsMap = await context.Products.ToDictionaryAsync(product => product.Name);
 
-            List<CuratedCollectionItem> items = new();
+            List<CuratedCollectionItem> items = new List<CuratedCollectionItem>();
 
-            foreach (var record in records)
+            foreach (dynamic record in records)
             {
                 string collectionTitle = record.CollectionTitle?.ToString() ?? string.Empty;
                 string productName = record.ProductName?.ToString() ?? string.Empty;
 
-                if (collectionsMap.TryGetValue(collectionTitle, out var collection) &&
-                    productsMap.TryGetValue(productName, out var product))
+                if (collectionsMap.TryGetValue(collectionTitle, out CuratedCollection? collection) &&
+                    productsMap.TryGetValue(productName, out Product? product))
                 {
                     items.Add(new CuratedCollectionItem
                     {
@@ -467,7 +502,10 @@ public static class DbInitializer
                 }
             }
 
-            await context.Set<CuratedCollectionItem>().AddRangeAsync(items);
+            foreach (CuratedCollectionItem item in items)
+            {
+                curatedCollectionItemRepository.Add(item);
+            }
             await context.SaveChangesAsync();
             Console.WriteLine($"[Seed] Successfully seeded {items.Count} curated collection items.");
         }

@@ -8,13 +8,14 @@ using MusicShop.Infrastructure.Persistence.Repositories;
 using MusicShop.Infrastructure.Security;
 using MusicShop.Infrastructure.Services;
 using MusicShop.Infrastructure.Payments;
+using Stripe;
 using MusicShop.Application.Common.Interfaces;
 using MusicShop.Infrastructure.Storage;
 using Amazon.S3;
 using Amazon.Runtime;
 using Amazon;
 using Amazon.Extensions.NETCore.Setup;
-using MusicShop.Application.Common.Models;
+using MusicShop.Infrastructure.Settings;
 using MusicShop.Infrastructure.Messaging;
 
 using Hangfire;
@@ -76,7 +77,16 @@ public static class DependencyInjection
             .ValidateOnStart();
 
 
-        services.AddStripeServices(configuration);
+        // 5. Register Stripe
+        services.Configure<StripeSettings>(configuration.GetSection(StripeSettings.SectionName));
+
+        StripeSettings? stripeSettings = configuration.GetSection(StripeSettings.SectionName).Get<StripeSettings>();
+        if (stripeSettings != null && !string.IsNullOrEmpty(stripeSettings.SecretKey))
+        {
+            StripeConfiguration.ApiKey = stripeSettings.SecretKey;
+        }
+
+        services.AddScoped<IStripeService, StripeService>();
 
         services.AddScoped<ITokenService, JwtTokenService>();
 
@@ -114,7 +124,6 @@ public static class DependencyInjection
 
         // 9. Reliable Messaging
         services.AddScoped<IMessagePublisher, MediatRPublisher>();
-        services.AddScoped<IInboxHandler, InboxHandler>();
         services.AddScoped<IMessageProcessor, MessageProcessor>();
         services.AddScoped<IJobService, HangfireJobService>();
         services.AddScoped<MessagePollingJob>();

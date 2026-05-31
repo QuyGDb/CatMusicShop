@@ -1,4 +1,4 @@
-namespace MusicShop.Application.Common.Models;
+namespace MusicShop.Infrastructure.Settings;
 
 public sealed record EmailSettings
 {

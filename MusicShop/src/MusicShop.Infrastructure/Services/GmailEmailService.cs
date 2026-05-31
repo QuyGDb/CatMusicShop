@@ -3,7 +3,7 @@ using MailKit.Security;
 using Microsoft.Extensions.Options;
 using MimeKit;
 using MusicShop.Application.Common.Interfaces;
-using MusicShop.Application.Common.Models;
+using MusicShop.Infrastructure.Settings;
 
 namespace MusicShop.Infrastructure.Services;
 
