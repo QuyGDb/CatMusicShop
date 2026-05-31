@@ -25,26 +25,25 @@ public sealed class MessagePollingJob
 
     public async Task PollAsync(CancellationToken ct = default)
     {
-        // ── release orphaned outbox locks ──────────────
+        // ── release orphaned locks (stuck > 10 minutes) ──
         DateTime stuckCutoff = DateTime.UtcNow.AddMinutes(-10);
 
         await _db.Database.ExecuteSqlRawAsync(@"
             UPDATE ""Messages""
             SET    ""LockId"" = NULL
-            WHERE  ""Direction""   = 'Outbox'
-              AND  ""LockId""      IS NOT NULL
+            WHERE  ""LockId""      IS NOT NULL
               AND  ""ProcessedAt"" IS NULL
               AND  ""CreatedAt""   < {0}",
             stuckCutoff);
 
-        // ── find all unprocessed messages ──────────────
+        // ── find unprocessed messages ──────────────────
         DateTime cutoff = DateTime.UtcNow.AddMinutes(-2);
 
         List<Message> unprocessed = await _db.Messages
-            .Where(m => m.ProcessedAt == null
-                     && m.LockId      == null
-                     && m.CreatedAt    < cutoff)
-            .OrderBy(m => m.CreatedAt)
+            .Where(message => message.ProcessedAt == null
+                     && message.LockId      == null
+                     && message.CreatedAt    < cutoff)
+            .OrderBy(message => message.CreatedAt)
             .Take(100)
             .ToListAsync(ct);
 
@@ -57,7 +56,7 @@ public sealed class MessagePollingJob
 
         foreach (Message message in unprocessed)
         {
-            _jobs.Enqueue<IMessageProcessor>(p => p.ProcessAsync(message.Id, default));
+            _jobs.Enqueue<IMessageProcessor>(processor => processor.ProcessAsync(message.Id, default));
         }
     }
 }

@@ -102,7 +102,6 @@ public sealed class CreateOrderCommandHandler(
 
         Message outbox = new()
         {
-            Direction = MessageDirection.Outbox,
             Type = MessageTypes.Orders.Created,
             IdempotencyKey = idempotencyKey,
             Payload = JsonSerializer.Serialize(new OrderCreatedEvent

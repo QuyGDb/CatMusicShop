@@ -27,5 +27,4 @@ public sealed record WebhookProcessResult
     public static WebhookProcessResult Failure(Error error) =>
         new() { Status = WebhookProcessStatus.Error, Error = error };
 
-    public bool ShouldBeProcessed => Status == WebhookProcessStatus.ShouldProcess;
 }

@@ -12,10 +12,6 @@ public sealed class MessageConfiguration : IEntityTypeConfiguration<Message>
 
         builder.HasKey(message => message.Id);
 
-        builder.Property(message => message.Direction)
-            .HasConversion<string>()
-            .HasMaxLength(10);
-
         builder.Property(message => message.Type)
             .IsRequired()
             .HasMaxLength(256);
@@ -27,9 +23,6 @@ public sealed class MessageConfiguration : IEntityTypeConfiguration<Message>
         builder.Property(message => message.IdempotencyKey)
             .HasMaxLength(512);
 
-        builder.Property(message => message.MessageId)
-            .HasMaxLength(256);
-
         builder.Property(message => message.LockId)
             .HasMaxLength(64);
 
@@ -39,14 +32,9 @@ public sealed class MessageConfiguration : IEntityTypeConfiguration<Message>
         // ── outbox idempotency ─────────────────────────
         builder.HasIndex(message => message.IdempotencyKey)
             .IsUnique()
-            .HasFilter("\"Direction\" = 'Outbox' AND \"IdempotencyKey\" IS NOT NULL AND \"ProcessedAt\" IS NULL");
-
-        // ── inbox idempotency ──────────────────────────
-        builder.HasIndex(message => message.MessageId)
-            .IsUnique()
-            .HasFilter("\"Direction\" = 'Inbox' AND \"MessageId\" IS NOT NULL");
+            .HasFilter("\"IdempotencyKey\" IS NOT NULL AND \"ProcessedAt\" IS NULL");
 
         // ── fast polling query ─────────────────────────
-        builder.HasIndex(message => new { message.Direction, message.ProcessedAt });
+        builder.HasIndex(message => message.ProcessedAt);
     }
 }

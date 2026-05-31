@@ -13,7 +13,6 @@ public sealed class MediatRPublisher(IMediator mediator, ILogger<MediatRPublishe
         new()
         {
             [MessageTypes.Orders.Created] = typeof(OrderCreatedEvent),
-            [MessageTypes.Stripe.PaymentSucceeded] = typeof(StripePaymentSucceededEvent),
         };
 
     public async Task PublishAsync(string messageType, string jsonPayload, CancellationToken ct = default)
