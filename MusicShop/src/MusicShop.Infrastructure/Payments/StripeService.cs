@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Logging;
 using MusicShop.Application.Common.Models;
 using Microsoft.Extensions.Options;
 using MusicShop.Application.Common.Interfaces.Repositories;
@@ -15,8 +14,7 @@ using MusicShop.Domain.Enums;
 namespace MusicShop.Infrastructure.Payments;
 
 public sealed class StripeService(
-    IOptions<StripeSettings> settings,
-    ILogger<StripeService> logger) : IStripeService
+    IOptions<StripeSettings> settings) : IStripeService
 {
     private readonly StripeSettings _settings = settings.Value;
 
@@ -73,7 +71,6 @@ public sealed class StripeService(
         }
         catch (StripeException ex)
         {
-            logger.LogError(ex, "Stripe exception during session creation for Order {OrderId}", order.Id);
             return Result<StripeCheckoutDto>.Failure(PaymentErrors.CustomStripeError(ex.Message));
         }
     }
@@ -97,7 +94,6 @@ public sealed class StripeService(
         }
         catch (StripeException ex)
         {
-            logger.LogError(ex, "Stripe webhook signature verification failed");
             return Task.FromResult(WebhookProcessResult.Failure(PaymentErrors.CustomStripeError(ex.Message)));
         }
     }
@@ -145,7 +141,6 @@ public sealed class StripeService(
         }
         catch (StripeException ex)
         {
-            logger.LogError(ex, "Stripe exception during refund for transaction {TransactionCode}", transactionCode);
             return Result.Failure(PaymentErrors.CustomStripeError(ex.Message));
         }
     }

@@ -6,22 +6,19 @@ using MusicShop.Application.Common.Interfaces.Services;
 using MusicShop.Domain.Interfaces;
 using MusicShop.Domain.Errors;
 using MusicShop.Application.DTOs.Catalog;
-using Microsoft.Extensions.Logging;
 
 namespace MusicShop.Application.UseCases.Catalog.Releases.Commands.UpdateRelease;
 
 public sealed class UpdateReleaseCommandHandler(
     IReleaseRepository releaseRepository,
     IRepository<Artist> artistRepository,
-    IUnitOfWork unitOfWork,
-    ILogger<UpdateReleaseCommandHandler> logger)
+    IUnitOfWork unitOfWork)
     : IRequestHandler<UpdateReleaseCommand, Result<Guid>>
 {
     public async Task<Result<Guid>> Handle(
         UpdateReleaseCommand request,
         CancellationToken cancellationToken)
     {
-        logger.LogInformation("Updating release with request: {@ReleaseRequest}", request);
         // 1. Fetch Release with all related data
         Release? release = await releaseRepository.GetWithDetailsAsync(request.Id, track: true, cancellationToken);
 

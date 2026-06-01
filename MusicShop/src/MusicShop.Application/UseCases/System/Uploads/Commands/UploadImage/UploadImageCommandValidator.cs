@@ -1,6 +1,5 @@
 using FluentValidation;
 using MusicShop.Application.Common.Utils;
-using MusicShop.Domain.Errors;
 
 namespace MusicShop.Application.UseCases.System.Uploads.Commands.UploadImage;
 

@@ -122,7 +122,7 @@ public sealed class CreateOrderCommandHandler(
         jobService.EnqueueOutboxMessage(outbox.Id);
 
 
-        // 7. Create Stripe Session
+        // 8. Create Stripe Session
         Result<StripeCheckoutDto> stripeResult = await stripeService.CreateCheckoutSessionAsync(
             order,
             request.SuccessUrl,

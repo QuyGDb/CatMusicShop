@@ -3,13 +3,11 @@ using MusicShop.Application.Common.Interfaces.Services;
 using MusicShop.Domain.Common;
 using MusicShop.Domain.Entities.Orders;
 using MusicShop.Domain.Enums;
-using Microsoft.Extensions.Logging;
 
 namespace MusicShop.Application.UseCases.Shop.Orders.Commands.UpdateOrderStatus.Actions;
 
 public sealed class CancelOrderAction(
-    IStripeService stripeService,
-    ILogger<CancelOrderAction> logger) : IOrderStatusAction
+    IStripeService stripeService) : IOrderStatusAction
 {
     public bool CanHandle(OrderStatus from, OrderStatus to) 
         => to == OrderStatus.Cancelled;
@@ -32,11 +30,7 @@ public sealed class CancelOrderAction(
             if (order.Payment != null && order.Payment.Status == PaymentStatus.Paid && !string.IsNullOrEmpty(order.Payment.TransactionCode))
             {
                 Result refundResult = await stripeService.RefundOrderAsync(order.Payment.TransactionCode, ct);
-                if (refundResult.IsFailure)
-                {
-                    logger.LogWarning("Failed to process refund for Order {OrderId}: {Error}", order.Id, refundResult.Error.Message);
-                }
-                else
+                if (refundResult.IsSuccess)
                 {
                     order.Payment.Status = PaymentStatus.Refunded;
                 }

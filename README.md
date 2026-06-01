@@ -51,7 +51,6 @@ A full-stack e-commerce platform for selling physical music media — **Vinyl**,
 | 3D | Three.js + React Three Fiber + Drei |
 | Routing | React Router v7 |
 | HTTP | Axios |
-| Testing | Vitest + Playwright + Storybook |
 
 ### Infrastructure
 

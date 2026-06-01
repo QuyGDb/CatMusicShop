@@ -1,5 +1,4 @@
 using MediatR;
-using Microsoft.Extensions.Logging;
 using MusicShop.Application.Common.Interfaces.Repositories;
 using MusicShop.Application.Common.Interfaces.Services;
 using MusicShop.Domain.Common;
@@ -14,12 +13,10 @@ public sealed class UpdateOrderStatusCommandHandler(
     IOrderRepository orderRepository,
     IEnumerable<IOrderStatusAction> actions,
     IEmailService emailService,
-    IUnitOfWork unitOfWork,
-    ILogger<UpdateOrderStatusCommandHandler> logger) : IRequestHandler<UpdateOrderStatusCommand, Result>
+    IUnitOfWork unitOfWork) : IRequestHandler<UpdateOrderStatusCommand, Result>
 {
     public async Task<Result> Handle(UpdateOrderStatusCommand request, CancellationToken cancellationToken)
     {
-        logger.LogInformation("Updating Order {OrderId} status to {Status}", request.OrderId, request.Status);
         Order? order = await orderRepository.GetByIdWithDetailsAsync(request.OrderId, cancellationToken);
 
         if (order == null)
@@ -46,8 +43,6 @@ public sealed class UpdateOrderStatusCommandHandler(
         Result transitionResult = order.TransitionTo(targetStatus);
         if (transitionResult.IsFailure)
         {
-            logger.LogWarning("Invalid status transition attempt for Order {OrderId} from {From} to {To}",
-                order.Id, fromStatus, targetStatus);
             return transitionResult;
         }
 
@@ -58,9 +53,9 @@ public sealed class UpdateOrderStatusCommandHandler(
         {
             await SendStatusUpdateEmailAsync(order, cancellationToken);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            logger.LogError(ex, "Failed to send order status update email for Order {OrderId}", order.Id);
+            // Suppress notification failures to prevent breaking the core flow
         }
 
         return Result.Success();
