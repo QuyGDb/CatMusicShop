@@ -1,7 +1,7 @@
 using MusicShop.Domain.Entities.Orders;
 using MusicShop.Domain.Interfaces;
 
-namespace MusicShop.Application.Common.Interfaces;
+namespace MusicShop.Application.Common.Interfaces.Repositories;
 
 public interface ICartRepository : IRepository<Cart>
 {

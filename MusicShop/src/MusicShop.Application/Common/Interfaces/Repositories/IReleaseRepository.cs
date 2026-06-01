@@ -5,7 +5,7 @@ using MusicShop.Domain.Common;
 using MusicShop.Domain.Entities.Catalog;
 using MusicShop.Domain.Interfaces;
 
-namespace MusicShop.Application.Common.Interfaces;
+namespace MusicShop.Application.Common.Interfaces.Repositories;
 
 public interface IReleaseRepository : IRepository<Release>
 {

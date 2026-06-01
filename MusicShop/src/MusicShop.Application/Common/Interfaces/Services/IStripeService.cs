@@ -3,7 +3,7 @@ using MusicShop.Application.DTOs.Shop;
 using MusicShop.Domain.Common;
 using MusicShop.Domain.Entities.Orders;
 
-namespace MusicShop.Application.Common.Interfaces;
+namespace MusicShop.Application.Common.Interfaces.Services;
 
 public interface IStripeService
 {

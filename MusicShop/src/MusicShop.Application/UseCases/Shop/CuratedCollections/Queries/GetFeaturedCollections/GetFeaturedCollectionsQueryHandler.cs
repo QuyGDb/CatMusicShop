@@ -1,5 +1,6 @@
 using MediatR;
-using MusicShop.Application.Common.Interfaces;
+using MusicShop.Application.Common.Interfaces.Repositories;
+using MusicShop.Application.Common.Interfaces.Services;
 using MusicShop.Application.Common.Mappings;
 using MusicShop.Application.DTOs.Catalog;
 using MusicShop.Application.DTOs.Shop;
@@ -21,3 +22,4 @@ public sealed class GetFeaturedCollectionsQueryHandler(
         return Result<IReadOnlyList<CuratedCollectionFeaturedResponse>>.Success(responses);
     }
 }
+

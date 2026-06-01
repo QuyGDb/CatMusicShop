@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using MusicShop.Application.Common.Interfaces;
+using MusicShop.Application.Common.Interfaces.Repositories;
+using MusicShop.Application.Common.Interfaces.Services;
 using MusicShop.Application.UseCases.Catalog.Labels.Queries.GetLabels;
 using MusicShop.Domain.Entities.Catalog;
 using MusicShop.Domain.Interfaces;
@@ -56,3 +57,4 @@ public sealed class LabelRepository(AppDbContext context) : GenericRepository<La
             .FirstOrDefaultAsync(label => label.Slug == slug, ct);
     }
 }
+

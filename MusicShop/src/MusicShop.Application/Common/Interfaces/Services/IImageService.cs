@@ -2,7 +2,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace MusicShop.Application.Common.Interfaces;
+namespace MusicShop.Application.Common.Interfaces.Services;
 
 public interface IImageService
 {

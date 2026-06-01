@@ -9,14 +9,14 @@ using MusicShop.Infrastructure.Security;
 using MusicShop.Infrastructure.Services;
 using MusicShop.Infrastructure.Payments;
 using Stripe;
-using MusicShop.Application.Common.Interfaces;
+using MusicShop.Application.Common.Interfaces.Repositories;
+using MusicShop.Application.Common.Interfaces.Services;
 using MusicShop.Infrastructure.Storage;
 using Amazon.S3;
 using Amazon.Runtime;
 using Amazon;
 using Amazon.Extensions.NETCore.Setup;
 using MusicShop.Infrastructure.Settings;
-using MusicShop.Infrastructure.Messaging;
 
 using Hangfire;
 using Hangfire.PostgreSql;
@@ -122,12 +122,12 @@ public static class DependencyInjection
 
         services.AddHangfireServer();
 
-        // 9. Reliable Messaging
-        services.AddScoped<IMessagePublisher, MediatRPublisher>();
-        services.AddScoped<IMessageProcessor, MessageProcessor>();
+        // 9. Reliable Outbox Messaging
+        services.AddScoped<IOutboxProcessor, OutboxProcessor>();
         services.AddScoped<IJobService, HangfireJobService>();
-        services.AddScoped<MessagePollingJob>();
+        services.AddScoped<OutboxRecoveryJob>();
 
         return services;
     }
 }
+

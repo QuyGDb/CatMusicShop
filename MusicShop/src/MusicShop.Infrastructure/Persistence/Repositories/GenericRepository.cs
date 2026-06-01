@@ -35,6 +35,27 @@ public class GenericRepository<T>(AppDbContext context) : IRepository<T> where T
         return await _dbSet.CountAsync(predicate, cancellationToken);
     }
 
+    public async Task<IReadOnlyList<T>> ListAsync(
+        Expression<Func<T, bool>> predicate,
+        Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null,
+        int? take = null,
+        CancellationToken cancellationToken = default)
+    {
+        IQueryable<T> query = _dbSet.Where(predicate);
+
+        if (orderBy is not null)
+        {
+            query = orderBy(query);
+        }
+
+        if (take.HasValue)
+        {
+            query = query.Take(take.Value);
+        }
+
+        List<T> list = await query.ToListAsync(cancellationToken);
+        return list;
+    }
 
     public void Add(T entity)
     {

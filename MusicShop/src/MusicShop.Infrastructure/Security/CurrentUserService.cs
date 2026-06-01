@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
-using MusicShop.Application.Common.Interfaces;
+using MusicShop.Application.Common.Interfaces.Repositories;
+using MusicShop.Application.Common.Interfaces.Services;
 
 using System.IdentityModel.Tokens.Jwt;
 
@@ -16,3 +17,4 @@ public class CurrentUserService(IHttpContextAccessor httpContextAccessor) : ICur
     public bool IsAuthenticated => httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated ?? false;
     public bool IsInRole(string role) => httpContextAccessor.HttpContext?.User?.IsInRole(role) ?? false;
 }
+

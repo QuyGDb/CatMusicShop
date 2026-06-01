@@ -1,7 +1,7 @@
 using MusicShop.Domain.Entities.Shop;
 using MusicShop.Domain.Interfaces;
 
-namespace MusicShop.Application.Common.Interfaces;
+namespace MusicShop.Application.Common.Interfaces.Repositories;
 
 public interface IProductRepository : IRepository<Product>
 {

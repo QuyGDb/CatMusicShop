@@ -2,7 +2,8 @@ using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.Extensions.Options;
 using MimeKit;
-using MusicShop.Application.Common.Interfaces;
+using MusicShop.Application.Common.Interfaces.Repositories;
+using MusicShop.Application.Common.Interfaces.Services;
 using MusicShop.Infrastructure.Settings;
 
 namespace MusicShop.Infrastructure.Services;
@@ -34,3 +35,4 @@ public sealed class GmailEmailService(IOptions<EmailSettings> emailSettings) : I
         await client.DisconnectAsync(true);
     }
 }
+

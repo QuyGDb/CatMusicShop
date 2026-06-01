@@ -1,5 +1,6 @@
 using MediatR;
-using MusicShop.Application.Common.Interfaces;
+using MusicShop.Application.Common.Interfaces.Repositories;
+using MusicShop.Application.Common.Interfaces.Services;
 using MusicShop.Application.Common.Mappings;
 using MusicShop.Application.DTOs.Auth;
 using MusicShop.Domain.Common;
@@ -34,3 +35,4 @@ public class GetMeQueryHandler(
         return Result<UserResponse>.Success(user.ToResponse());
     }
 }
+

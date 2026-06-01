@@ -2,7 +2,8 @@ using MediatR;
 using MusicShop.Application.DTOs.Catalog;
 using MusicShop.Domain.Common;
 using MusicShop.Domain.Entities.Catalog;
-using MusicShop.Application.Common.Interfaces;
+using MusicShop.Application.Common.Interfaces.Repositories;
+using MusicShop.Application.Common.Interfaces.Services;
 using MusicShop.Application.Common.Mappings;
 
 namespace MusicShop.Application.UseCases.Catalog.CatalogSearch;
@@ -38,3 +39,4 @@ public sealed class SearchCatalogQueryHandler(
         return Result<CatalogSearchResult>.Success(result);
     }
 }
+

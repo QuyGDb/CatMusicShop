@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-namespace MusicShop.Application.Common.Interfaces;
+namespace MusicShop.Application.Common.Interfaces.Services;
 
 public interface ICurrentUserService
 {

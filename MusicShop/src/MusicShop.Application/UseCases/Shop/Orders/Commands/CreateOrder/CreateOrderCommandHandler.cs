@@ -1,5 +1,6 @@
 using MediatR;
-using MusicShop.Application.Common.Interfaces;
+using MusicShop.Application.Common.Interfaces.Repositories;
+using MusicShop.Application.Common.Interfaces.Services;
 using MusicShop.Application.DTOs.Shop;
 using MusicShop.Domain.Common;
 using MusicShop.Domain.Entities.Orders;
@@ -21,7 +22,7 @@ public sealed class CreateOrderCommandHandler(
     IUnitOfWork unitOfWork,
     ICurrentUserService currentUserService,
     IStripeService stripeService,
-    IRepository<Message> messageRepository,
+    IRepository<OutboxMessage> outboxRepository,
     IJobService jobService) : IRequestHandler<CreateOrderCommand, Result<CreateOrderResponse>>
 {
     public async Task<Result<CreateOrderResponse>> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
@@ -98,27 +99,27 @@ public sealed class CreateOrderCommandHandler(
         orderRepository.Add(order);
 
         // 6. Record Outbox Message
-        string idempotencyKey = MessageTypes.BuildKey(MessageTypes.Orders.Created, order.Id);
-
-        Message outbox = new()
+        OutboxMessage outbox = new()
         {
-            Type = MessageTypes.Orders.Created,
-            IdempotencyKey = idempotencyKey,
+            Id = Guid.NewGuid(),
+            EventType = MessageTypes.Orders.Created,
             Payload = JsonSerializer.Serialize(new OrderCreatedEvent
             {
                 OrderId = order.Id,
                 UserId = order.UserId,
                 Total = order.TotalAmount,
                 CreatedAt = order.CreatedAt
-            })
+            }),
+            Status = "PENDING",
+            CreatedAt = DateTime.UtcNow
         };
 
-        messageRepository.Add(outbox);
+        outboxRepository.Add(outbox);
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         // 7. Enqueue processing AFTER save
-        jobService.EnqueueMessageProcessing(outbox.Id);
+        jobService.EnqueueOutboxMessage(outbox.Id);
 
 
         // 7. Create Stripe Session
@@ -141,3 +142,4 @@ public sealed class CreateOrderCommandHandler(
         ));
     }
 }
+

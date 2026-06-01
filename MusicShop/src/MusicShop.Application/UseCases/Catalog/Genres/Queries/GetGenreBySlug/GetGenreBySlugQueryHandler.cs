@@ -4,7 +4,8 @@ using MusicShop.Application.DTOs.Catalog;
 using MusicShop.Domain.Common;
 using MusicShop.Domain.Entities.Catalog;
 using MusicShop.Domain.Errors;
-using MusicShop.Application.Common.Interfaces;
+using MusicShop.Application.Common.Interfaces.Repositories;
+using MusicShop.Application.Common.Interfaces.Services;
 
 namespace MusicShop.Application.UseCases.Catalog.Genres.Queries.GetGenreBySlug;
 
@@ -25,3 +26,4 @@ public sealed class GetGenreBySlugQueryHandler(IGenreRepository genreRepository)
         return Result<GenreResponse>.Success(genre.ToResponse());
     }
 }
+

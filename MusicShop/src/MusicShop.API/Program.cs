@@ -12,7 +12,7 @@ using MusicShop.Domain.Entities.Catalog;
 using MusicShop.Domain.Entities.Shop;
 using MusicShop.Domain.Entities.System;
 using MusicShop.Infrastructure.Persistence;
-using MusicShop.Infrastructure.Messaging;
+using MusicShop.Infrastructure.Services;
 using Hangfire;
 
 
@@ -136,19 +136,21 @@ app.UseHangfireDashboard("/hangfire", new DashboardOptions
     Authorization = new[] { new MusicShop.API.Infrastructure.HangfireAdminAuthorizationFilter() }
 });
 
-// 7. Recurring Jobs
+// 7. Recurring Jobs (Outbox Recovery)
 using (IServiceScope scope = app.Services.CreateScope())
 {
     IRecurringJobManager recurringJobs = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
 
-    // Remove old/obsolete jobs from database
+    // Remove old/obsolete outbox/inbox polling jobs
+    recurringJobs.RemoveIfExists("message-poller");
     recurringJobs.RemoveIfExists("process-outbox-messages");
     recurringJobs.RemoveIfExists("process-inbox-messages");
 
-    recurringJobs.AddOrUpdate<MessagePollingJob>(
-        "message-poller",
-        job => job.PollAsync(default),
-        "*/2 * * * *"); // Every 2 minutes
+    // Register recovery job to run every 10 minutes
+    recurringJobs.AddOrUpdate<OutboxRecoveryJob>(
+        "outbox-recovery",
+        job => job.RecoverUnprocessedMessagesAsync(default),
+        "*/10 * * * *");
 }
 
 

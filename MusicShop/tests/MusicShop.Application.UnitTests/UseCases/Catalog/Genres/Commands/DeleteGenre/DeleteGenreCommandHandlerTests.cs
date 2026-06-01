@@ -2,7 +2,8 @@ using FluentAssertions;
 using MusicShop.Application.UseCases.Catalog.Genres.Commands.DeleteGenre;
 using MusicShop.Domain.Common;
 using MusicShop.Domain.Entities.Catalog;
-using MusicShop.Application.Common.Interfaces;
+using MusicShop.Application.Common.Interfaces.Repositories;
+using MusicShop.Application.Common.Interfaces.Services;
 using MusicShop.Domain.Interfaces;
 using MusicShop.Domain.Errors;
 using NSubstitute;
@@ -81,3 +82,4 @@ public class DeleteGenreCommandHandlerTests
         _genreRepository.DidNotReceive().Delete(Arg.Any<Genre>());
     }
 }
+

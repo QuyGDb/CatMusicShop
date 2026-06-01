@@ -1,13 +1,14 @@
 using Hangfire;
-using MusicShop.Application.Common.Interfaces;
-using MusicShop.Infrastructure.Messaging;
+using MusicShop.Application.Common.Interfaces.Repositories;
+using MusicShop.Application.Common.Interfaces.Services;
 
 namespace MusicShop.Infrastructure.Services;
 
 public sealed class HangfireJobService(IBackgroundJobClient backgroundJobClient) : IJobService
 {
-    public void EnqueueMessageProcessing(Guid messageId)
+    public void EnqueueOutboxMessage(Guid messageId)
     {
-        backgroundJobClient.Enqueue<IMessageProcessor>(processor => processor.ProcessAsync(messageId, default));
+        backgroundJobClient.Enqueue<IOutboxProcessor>(processor => processor.ProcessAsync(messageId, default));
     }
 }
+

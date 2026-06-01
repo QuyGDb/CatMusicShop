@@ -1,5 +1,6 @@
 using FluentAssertions;
-using MusicShop.Application.Common.Interfaces;
+using MusicShop.Application.Common.Interfaces.Repositories;
+using MusicShop.Application.Common.Interfaces.Services;
 using MusicShop.Application.DTOs.Auth;
 using MusicShop.Application.UseCases.Auth.Commands.GoogleLogin;
 using MusicShop.Domain.Common;
@@ -102,3 +103,4 @@ public class GoogleLoginCommandHandlerTests
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 }
+

@@ -3,7 +3,8 @@ using MusicShop.Application.Common;
 using MusicShop.Application.DTOs.Catalog;
 using MusicShop.Domain.Common;
 using MusicShop.Domain.Entities.Catalog;
-using MusicShop.Application.Common.Interfaces;
+using MusicShop.Application.Common.Interfaces.Repositories;
+using MusicShop.Application.Common.Interfaces.Services;
 using MusicShop.Application.Common.Mappings;
 
 namespace MusicShop.Application.UseCases.Catalog.Artists.Queries.GetArtists;
@@ -29,3 +30,4 @@ public sealed class GetArtistsQueryHandler(IArtistRepository artistRepository)
         return Result<PaginatedResult<ArtistResponse>>.Success(result);
     }
 }
+

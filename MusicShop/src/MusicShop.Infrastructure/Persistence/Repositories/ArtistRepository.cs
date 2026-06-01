@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using MusicShop.Application.Common.Interfaces;
+using MusicShop.Application.Common.Interfaces.Repositories;
+using MusicShop.Application.Common.Interfaces.Services;
 using MusicShop.Application.UseCases.Catalog.Artists.Queries.GetArtists;
 using MusicShop.Domain.Entities.Catalog;
 using MusicShop.Domain.Interfaces;
@@ -81,3 +82,4 @@ public sealed class ArtistRepository(AppDbContext context) : GenericRepository<A
             .ToListAsync(ct);
     }
 }
+

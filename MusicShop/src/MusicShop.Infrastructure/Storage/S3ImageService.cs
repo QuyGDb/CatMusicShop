@@ -1,7 +1,8 @@
 using Amazon.S3;
 using Amazon.S3.Model;
 using Microsoft.Extensions.Options;
-using MusicShop.Application.Common.Interfaces;
+using MusicShop.Application.Common.Interfaces.Repositories;
+using MusicShop.Application.Common.Interfaces.Services;
 
 
 namespace MusicShop.Infrastructure.Storage;
@@ -60,3 +61,4 @@ public sealed class S3ImageService(
         await s3Client.DeleteObjectAsync(request, ct);
     }
 }
+

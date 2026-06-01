@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using MusicShop.Application.Common.Interfaces;
+using MusicShop.Application.Common.Interfaces.Repositories;
+using MusicShop.Application.Common.Interfaces.Services;
 using MusicShop.Application.UseCases.Catalog.Releases.Queries.GetReleases;
 using MusicShop.Domain.Entities.Catalog;
 using MusicShop.Domain.Enums;
@@ -111,3 +112,4 @@ public sealed class ReleaseRepository(AppDbContext context) : GenericRepository<
             .ToListAsync(ct);
     }
 }
+

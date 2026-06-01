@@ -3,7 +3,7 @@ using MusicShop.Domain.Entities.Orders;
 using MusicShop.Domain.Enums;
 using MusicShop.Domain.Interfaces;
 
-namespace MusicShop.Application.Common.Interfaces;
+namespace MusicShop.Application.Common.Interfaces.Repositories;
 
 public interface IOrderRepository : IRepository<Order>
 {

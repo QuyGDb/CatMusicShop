@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using MusicShop.Application.Common.Interfaces;
+using MusicShop.Application.Common.Interfaces.Repositories;
+using MusicShop.Application.Common.Interfaces.Services;
 using MusicShop.Application.UseCases.Shop.Products.Queries.GetProducts;
 using MusicShop.Domain.Entities.Shop;
 using MusicShop.Domain.Enums;
@@ -116,3 +117,4 @@ public sealed class ProductRepository(AppDbContext context) : GenericRepository<
                 ct);
     }
 }
+

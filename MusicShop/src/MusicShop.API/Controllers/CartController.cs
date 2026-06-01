@@ -3,7 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MusicShop.API.Controllers;
 using MusicShop.API.Infrastructure;
-using MusicShop.Application.Common.Interfaces;
+using MusicShop.Application.Common.Interfaces.Repositories;
+using MusicShop.Application.Common.Interfaces.Services;
 using MusicShop.Application.DTOs.Shop;
 using MusicShop.Application.UseCases.Shop.Cart.Commands.AddToCart;
 using MusicShop.Application.UseCases.Shop.Cart.Commands.ClearCart;
@@ -74,6 +75,7 @@ public sealed class CartController(
         return HandleNoContentResult(result);
     }
 }
+
 
 
 

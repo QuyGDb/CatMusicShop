@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using MusicShop.Application.Common.Interfaces;
+using MusicShop.Application.Common.Interfaces.Repositories;
+using MusicShop.Application.Common.Interfaces.Services;
 using MusicShop.Domain.Entities.Shop;
 using MusicShop.Infrastructure.Persistence;
 
@@ -84,3 +85,4 @@ public sealed class CuratedCollectionRepository(AppDbContext context)
         return maxOrder + 1;
     }
 }
+

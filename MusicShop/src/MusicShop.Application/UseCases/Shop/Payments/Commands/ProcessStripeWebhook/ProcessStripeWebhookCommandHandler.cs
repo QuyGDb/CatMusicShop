@@ -1,5 +1,6 @@
 using MediatR;
-using MusicShop.Application.Common.Interfaces;
+using MusicShop.Application.Common.Interfaces.Repositories;
+using MusicShop.Application.Common.Interfaces.Services;
 using MusicShop.Application.Common.Models;
 using MusicShop.Domain.Common;
 
@@ -33,3 +34,4 @@ public sealed class ProcessStripeWebhookCommandHandler(
         return Result.Success();
     }
 }
+

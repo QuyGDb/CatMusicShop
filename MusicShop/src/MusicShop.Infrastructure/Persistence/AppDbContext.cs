@@ -24,9 +24,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Product> Products { get; set; }
     public DbSet<CuratedCollection> CuratedCollections { get; set; }
 
-
     // 8. Messaging (Outbox/Inbox)
-    public DbSet<Message> Messages { get; set; }
+    public DbSet<OutboxMessage> OutboxMessages { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

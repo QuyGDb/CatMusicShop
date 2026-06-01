@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using MusicShop.Application.Common.Interfaces;
+using MusicShop.Application.Common.Interfaces.Repositories;
+using MusicShop.Application.Common.Interfaces.Services;
 using MusicShop.Domain.Entities.Orders;
 using MusicShop.Domain.Enums;
 using MusicShop.Infrastructure.Persistence;
@@ -78,3 +79,4 @@ public sealed class OrderRepository(AppDbContext context) : GenericRepository<Or
         return (items, totalCount);
     }
 }
+

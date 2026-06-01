@@ -1,4 +1,4 @@
-namespace MusicShop.Application.Common.Interfaces;
+namespace MusicShop.Application.Common.Interfaces.Services;
 
 public interface IEmailService
 {

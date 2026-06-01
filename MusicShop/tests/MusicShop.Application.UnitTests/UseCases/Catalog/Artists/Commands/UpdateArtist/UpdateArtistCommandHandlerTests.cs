@@ -3,7 +3,8 @@ using MusicShop.Application.UseCases.Catalog.Artists.Commands.UpdateArtist;
 using MusicShop.Domain.Common;
 using MusicShop.Domain.Entities.Catalog;
 using MusicShop.Domain.Interfaces;
-using MusicShop.Application.Common.Interfaces;
+using MusicShop.Application.Common.Interfaces.Repositories;
+using MusicShop.Application.Common.Interfaces.Services;
 using MusicShop.Domain.Errors;
 using NSubstitute;
 
@@ -75,3 +76,4 @@ public class UpdateArtistCommandHandlerTests
         result.Error.Should().Be(ArtistErrors.NotFound);
     }
 }
+

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using MusicShop.Application.Common.Interfaces;
+using MusicShop.Application.Common.Interfaces.Repositories;
+using MusicShop.Application.Common.Interfaces.Services;
 using MusicShop.Domain.Entities.Orders;
 using MusicShop.Infrastructure.Persistence;
 
@@ -34,3 +35,4 @@ public sealed class CartRepository(AppDbContext context) : GenericRepository<Car
         _context.Set<CartItem>().RemoveRange(cartItems);
     }
 }
+
